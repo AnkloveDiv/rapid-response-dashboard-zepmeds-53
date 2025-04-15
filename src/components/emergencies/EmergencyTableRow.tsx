@@ -16,7 +16,7 @@ import { useNavigate } from 'react-router-dom';
 
 interface EmergencyTableRowProps {
   request: EmergencyRequest;
-  onStatusChange: () => void;
+  onStatusChange: () => void; // Added this line to explicitly define the prop
 }
 
 const EmergencyTableRow = ({ request, onStatusChange }: EmergencyTableRowProps) => {
@@ -30,7 +30,7 @@ const EmergencyTableRow = ({ request, onStatusChange }: EmergencyTableRowProps) 
   };
 
   const handleDispatchSuccess = () => {
-    onStatusChange();
+    onStatusChange(); // Call the onStatusChange prop when dispatch is successful
     toast({
       title: "Ambulance Dispatched",
       description: "The ambulance has been successfully dispatched to the emergency location.",
