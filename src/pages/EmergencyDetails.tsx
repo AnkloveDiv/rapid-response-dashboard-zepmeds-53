@@ -80,14 +80,25 @@ const EmergencyDetails = () => {
           throw emergencyError;
         }
 
+        // Ensure proper typing for the location field
+        const locationData = typeof emergencyData.location === 'string' 
+          ? JSON.parse(emergencyData.location) 
+          : emergencyData.location;
+
         // Transform Supabase data to match our EmergencyRequest type
         const transformedEmergency: EmergencyRequest = {
           id: emergencyData.id,
           name: emergencyData.name,
           phone: emergencyData.phone,
           timestamp: emergencyData.timestamp,
-          location: emergencyData.location,
-          status: emergencyData.status,
+          location: {
+            address: locationData.address || '',
+            coordinates: {
+              latitude: locationData.coordinates?.latitude || 0,
+              longitude: locationData.coordinates?.longitude || 0
+            }
+          },
+          status: emergencyData.status as EmergencyRequest['status'],
           notes: emergencyData.notes || undefined,
           ambulanceId: emergencyData.ambulance_id || undefined
         };

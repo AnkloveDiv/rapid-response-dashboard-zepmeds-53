@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -76,16 +77,29 @@ const Emergencies = () => {
           throw error;
         }
 
-        const transformedData: EmergencyRequest[] = data.map(item => ({
-          id: item.id,
-          name: item.name,
-          phone: item.phone,
-          timestamp: item.timestamp,
-          location: item.location,
-          status: item.status as EmergencyRequest['status'],
-          notes: item.notes || undefined,
-          ambulanceId: item.ambulance_id || undefined
-        }));
+        const transformedData: EmergencyRequest[] = data.map(item => {
+          // Ensure proper typing for the location field
+          const locationData = typeof item.location === 'string' 
+            ? JSON.parse(item.location) 
+            : item.location;
+            
+          return {
+            id: item.id,
+            name: item.name,
+            phone: item.phone,
+            timestamp: item.timestamp,
+            location: {
+              address: locationData.address || '',
+              coordinates: {
+                latitude: locationData.coordinates?.latitude || 0,
+                longitude: locationData.coordinates?.longitude || 0
+              }
+            },
+            status: item.status as EmergencyRequest['status'],
+            notes: item.notes || undefined,
+            ambulanceId: item.ambulance_id || undefined
+          };
+        });
 
         setEmergencyRequests(transformedData);
       } catch (error) {
@@ -113,12 +127,23 @@ const Emergencies = () => {
         (payload) => {
           console.log('New emergency request received:', payload);
           
+          // Ensure proper typing for the location field
+          const locationData = typeof payload.new.location === 'string' 
+            ? JSON.parse(payload.new.location) 
+            : payload.new.location;
+          
           const newRequest: EmergencyRequest = {
             id: payload.new.id,
             name: payload.new.name,
             phone: payload.new.phone,
             timestamp: payload.new.timestamp,
-            location: payload.new.location,
+            location: {
+              address: locationData.address || '',
+              coordinates: {
+                latitude: locationData.coordinates?.latitude || 0,
+                longitude: locationData.coordinates?.longitude || 0
+              }
+            },
             status: payload.new.status as EmergencyRequest['status'],
             notes: payload.new.notes || undefined,
             ambulanceId: payload.new.ambulance_id || undefined
