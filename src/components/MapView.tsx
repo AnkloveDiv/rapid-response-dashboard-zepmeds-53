@@ -71,7 +71,7 @@ const MapView: React.FC<MapViewProps> = ({
   // GraphHopper API key for routing if needed
   const graphhopperApiKey = AiService.getGraphhopperApiKey();
   const defaultPosition: [number, number] = [latitude, longitude];
-  
+
   return (
     <div style={{ height: '100%', width: '100%', position: 'relative' }}>
       <MapContainer 
