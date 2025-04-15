@@ -19,6 +19,9 @@ const defaultIcon = new L.Icon({
   popupAnchor: [1, -34],
 });
 
+// Set default icon for all markers
+L.Marker.prototype.options.icon = defaultIcon;
+
 // Custom ambulance icon
 const ambulanceIcon = new L.Icon({
   iconUrl: 'https://cdn-icons-png.flaticon.com/512/2180/2180437.png',
