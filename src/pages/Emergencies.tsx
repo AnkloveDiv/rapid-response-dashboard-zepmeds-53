@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -47,9 +46,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 import MainLayout from '@/components/layout/MainLayout';
-import { mockService } from '@/data/mockData';
+import { supabase } from '@/integrations/supabase/client';
 import { EmergencyRequest } from '@/types';
+import AudioService from '@/services/AudioService';
 
 const Emergencies = () => {
   const [emergencyRequests, setEmergencyRequests] = useState<EmergencyRequest[]>([]);
@@ -61,32 +62,93 @@ const Emergencies = () => {
     key: 'timestamp',
     direction: 'desc'
   });
+  const { toast } = useToast();
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchEmergencyRequests = async () => {
       try {
-        const requestsData = await mockService.getEmergencyRequests();
-        setEmergencyRequests(requestsData);
-        setFilteredRequests(requestsData);
+        const { data, error } = await supabase
+          .from('emergency_requests')
+          .select('*')
+          .order('timestamp', { ascending: false });
+
+        if (error) {
+          throw error;
+        }
+
+        const transformedData: EmergencyRequest[] = data.map(item => ({
+          id: item.id,
+          name: item.name,
+          phone: item.phone,
+          timestamp: item.timestamp,
+          location: item.location,
+          status: item.status as EmergencyRequest['status'],
+          notes: item.notes || undefined,
+          ambulanceId: item.ambulance_id || undefined
+        }));
+
+        setEmergencyRequests(transformedData);
       } catch (error) {
         console.error('Error fetching emergency requests:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load emergency requests. Please try again.",
+          variant: "destructive",
+        });
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchData();
-  }, []);
+    fetchEmergencyRequests();
+
+    const channel = supabase
+      .channel('public:emergency_requests')
+      .on('postgres_changes', 
+        { 
+          event: 'INSERT', 
+          schema: 'public', 
+          table: 'emergency_requests' 
+        }, 
+        (payload) => {
+          console.log('New emergency request received:', payload);
+          
+          const newRequest: EmergencyRequest = {
+            id: payload.new.id,
+            name: payload.new.name,
+            phone: payload.new.phone,
+            timestamp: payload.new.timestamp,
+            location: payload.new.location,
+            status: payload.new.status as EmergencyRequest['status'],
+            notes: payload.new.notes || undefined,
+            ambulanceId: payload.new.ambulance_id || undefined
+          };
+          
+          AudioService.playEmergencyAlert(5);
+          
+          setEmergencyRequests(prevRequests => [newRequest, ...prevRequests]);
+          
+          toast({
+            title: "New Emergency Request",
+            description: `${newRequest.name} is requesting emergency assistance`,
+            variant: "default",
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [toast]);
 
   useEffect(() => {
     let result = [...emergencyRequests];
     
-    // Apply status filter
     if (statusFilter !== 'all') {
       result = result.filter(request => request.status === statusFilter);
     }
     
-    // Apply search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter(request => 
@@ -96,7 +158,6 @@ const Emergencies = () => {
       );
     }
     
-    // Apply sorting
     result.sort((a, b) => {
       let aValue, bValue;
       
@@ -114,7 +175,6 @@ const Emergencies = () => {
           : bValue.localeCompare(aValue);
       }
       
-      // For dates
       if (sortConfig.key === 'timestamp') {
         const aDate = new Date(a.timestamp).getTime();
         const bDate = new Date(b.timestamp).getTime();
@@ -149,6 +209,44 @@ const Emergencies = () => {
     }
   };
 
+  const createEmergencyRequest = async () => {
+    try {
+      const testRequest = {
+        name: "Test Patient",
+        phone: "+1234567890",
+        location: {
+          address: "123 Test Street, Test City",
+          coordinates: {
+            latitude: 37.7749,
+            longitude: -122.4194
+          }
+        }
+      };
+
+      const { data, error } = await supabase
+        .from('emergency_requests')
+        .insert(testRequest)
+        .select();
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Test Request Created",
+        description: "A test emergency request has been created successfully.",
+        variant: "default",
+      });
+    } catch (error) {
+      console.error('Error creating test emergency request:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create test emergency request.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <MainLayout>
@@ -170,10 +268,15 @@ const Emergencies = () => {
             <h1 className="text-2xl font-bold tracking-tight">Emergency Requests</h1>
             <p className="text-gray-500">Manage all emergency service requests</p>
           </div>
-          <Button className="bg-purple-500 hover:bg-purple-600">
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Add Manual Request
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              className="bg-purple-500 hover:bg-purple-600"
+              onClick={createEmergencyRequest}
+            >
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add Test Request
+            </Button>
+          </div>
         </div>
 
         <Card>

@@ -137,6 +137,45 @@ export type Database = {
           },
         ]
       }
+      emergency_requests: {
+        Row: {
+          ambulance_id: string | null
+          created_at: string | null
+          id: string
+          location: Json
+          name: string
+          notes: string | null
+          phone: string
+          status: string
+          timestamp: string
+          updated_at: string | null
+        }
+        Insert: {
+          ambulance_id?: string | null
+          created_at?: string | null
+          id?: string
+          location: Json
+          name: string
+          notes?: string | null
+          phone: string
+          status?: string
+          timestamp?: string
+          updated_at?: string | null
+        }
+        Update: {
+          ambulance_id?: string | null
+          created_at?: string | null
+          id?: string
+          location?: Json
+          name?: string
+          notes?: string | null
+          phone?: string
+          status?: string
+          timestamp?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string | null

@@ -41,19 +41,20 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useToast } from "@/hooks/use-toast";
 import MainLayout from '@/components/layout/MainLayout';
-import { mockService } from '@/data/mockData';
+import { supabase } from '@/integrations/supabase/client';
 import { EmergencyRequest, Ambulance } from '@/types';
 import MapView from '@/components/MapView';
 
 const EmergencyDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [emergency, setEmergency] = useState<EmergencyRequest | null>(null);
   const [availableAmbulances, setAvailableAmbulances] = useState<Ambulance[]>([]);
   const [selectedAmbulanceId, setSelectedAmbulanceId] = useState<string>('');
@@ -64,46 +65,145 @@ const EmergencyDetails = () => {
   const [actionType, setActionType] = useState<'dispatch' | 'complete' | 'cancel' | null>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchEmergencyData = async () => {
+      if (!id) return;
+      
       try {
-        if (!id) return;
-        
-        const [emergencyData, ambulancesData] = await Promise.all([
-          mockService.getEmergencyRequestById(id),
-          mockService.getAvailableAmbulances()
-        ]);
-        
-        setEmergency(emergencyData);
-        setAvailableAmbulances(ambulancesData);
+        // Fetch emergency request details
+        const { data: emergencyData, error: emergencyError } = await supabase
+          .from('emergency_requests')
+          .select('*')
+          .eq('id', id)
+          .single();
+
+        if (emergencyError) {
+          throw emergencyError;
+        }
+
+        // Transform Supabase data to match our EmergencyRequest type
+        const transformedEmergency: EmergencyRequest = {
+          id: emergencyData.id,
+          name: emergencyData.name,
+          phone: emergencyData.phone,
+          timestamp: emergencyData.timestamp,
+          location: emergencyData.location,
+          status: emergencyData.status,
+          notes: emergencyData.notes || undefined,
+          ambulanceId: emergencyData.ambulance_id || undefined
+        };
+
+        setEmergency(transformedEmergency);
         
         if (emergencyData.notes) {
           setNotes(emergencyData.notes);
         }
+
+        // Get available ambulances (This is mock data for now)
+        // In a real implementation, we would fetch this from a 'ambulances' table in Supabase
+        const mockAmbulances: Ambulance[] = [
+          {
+            id: '1',
+            name: 'Ambulance A',
+            vehicleNumber: 'ZEP-001',
+            driver: {
+              name: 'John Driver',
+              phone: '+12345678901'
+            },
+            status: 'available'
+          },
+          {
+            id: '2',
+            name: 'Ambulance B',
+            vehicleNumber: 'ZEP-002',
+            driver: {
+              name: 'Sarah Medic',
+              phone: '+12345678902'
+            },
+            status: 'available'
+          },
+          {
+            id: '3',
+            name: 'Ambulance C',
+            vehicleNumber: 'ZEP-003',
+            driver: {
+              name: 'Mike Rescue',
+              phone: '+12345678903'
+            },
+            status: 'available'
+          }
+        ];
+
+        setAvailableAmbulances(mockAmbulances);
       } catch (error) {
         console.error('Error fetching emergency details:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load emergency details. Please try again.",
+          variant: "destructive",
+        });
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchData();
-  }, [id]);
+    fetchEmergencyData();
+  }, [id, toast]);
+
+  const updateEmergencyStatus = async (status: EmergencyRequest['status'], ambulanceId?: string) => {
+    if (!emergency || !id) return;
+    
+    try {
+      const updateData: any = { 
+        status,
+        notes,
+        updated_at: new Date().toISOString()
+      };
+
+      if (ambulanceId) {
+        updateData.ambulance_id = ambulanceId;
+      }
+
+      const { data, error } = await supabase
+        .from('emergency_requests')
+        .update(updateData)
+        .eq('id', id)
+        .select();
+
+      if (error) {
+        throw error;
+      }
+
+      // Transform updated data
+      const updatedEmergency: EmergencyRequest = {
+        ...emergency,
+        status: status,
+        notes: notes,
+        ambulanceId: ambulanceId || emergency.ambulanceId
+      };
+
+      setEmergency(updatedEmergency);
+      
+      toast({
+        title: "Request Updated",
+        description: `Emergency request has been ${status}.`,
+        variant: "default",
+      });
+    } catch (error) {
+      console.error(`Error updating emergency request to ${status}:`, error);
+      toast({
+        title: "Error",
+        description: `Failed to update emergency status to ${status}.`,
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleDispatch = async () => {
     if (!emergency || !selectedAmbulanceId) return;
     
     setIsSubmitting(true);
     try {
-      const updatedRequest = await mockService.updateEmergencyRequestStatus(
-        emergency.id,
-        'dispatched',
-        selectedAmbulanceId
-      );
-      
-      // Also update the ambulance status
-      await mockService.updateAmbulanceStatus(selectedAmbulanceId, 'dispatched');
-      
-      setEmergency(updatedRequest);
+      await updateEmergencyStatus('dispatched', selectedAmbulanceId);
       setConfirmDialog(false);
     } catch (error) {
       console.error('Error dispatching ambulance:', error);
@@ -117,17 +217,7 @@ const EmergencyDetails = () => {
     
     setIsSubmitting(true);
     try {
-      const updatedRequest = await mockService.updateEmergencyRequestStatus(
-        emergency.id,
-        'completed'
-      );
-      
-      // If an ambulance was dispatched, set it back to available
-      if (emergency.ambulanceId) {
-        await mockService.updateAmbulanceStatus(emergency.ambulanceId, 'available');
-      }
-      
-      setEmergency(updatedRequest);
+      await updateEmergencyStatus('completed');
       setConfirmDialog(false);
     } catch (error) {
       console.error('Error completing request:', error);
@@ -141,22 +231,40 @@ const EmergencyDetails = () => {
     
     setIsSubmitting(true);
     try {
-      const updatedRequest = await mockService.updateEmergencyRequestStatus(
-        emergency.id,
-        'cancelled'
-      );
-      
-      // If an ambulance was dispatched, set it back to available
-      if (emergency.ambulanceId) {
-        await mockService.updateAmbulanceStatus(emergency.ambulanceId, 'available');
-      }
-      
-      setEmergency(updatedRequest);
+      await updateEmergencyStatus('cancelled');
       setConfirmDialog(false);
     } catch (error) {
       console.error('Error cancelling request:', error);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleSaveNotes = async () => {
+    if (!emergency || !id) return;
+    
+    try {
+      const { error } = await supabase
+        .from('emergency_requests')
+        .update({ notes })
+        .eq('id', id);
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Notes Saved",
+        description: "Emergency request notes have been updated.",
+        variant: "default",
+      });
+    } catch (error) {
+      console.error('Error saving notes:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save notes.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -449,6 +557,16 @@ const EmergencyDetails = () => {
                       rows={4}
                       disabled={emergency.status === 'completed' || emergency.status === 'cancelled'}
                     />
+                    {(emergency.status === 'pending' || emergency.status === 'dispatched') && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="mt-2"
+                        onClick={handleSaveNotes}
+                      >
+                        Save Notes
+                      </Button>
+                    )}
                   </div>
                 </div>
               </CardContent>
