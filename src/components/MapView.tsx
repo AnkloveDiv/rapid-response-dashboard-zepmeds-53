@@ -86,7 +86,6 @@ const MapView: React.FC<MapViewProps> = ({
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
         
-        {/* Render Emergency Markers */}
         {emergencyRequests.map(request => {
           const isSelected = selectedEmergencyId === request.id;
           const requestPosition: [number, number] = [
@@ -112,7 +111,6 @@ const MapView: React.FC<MapViewProps> = ({
           );
         })}
         
-        {/* Render Ambulance Markers */}
         {ambulances.filter(amb => amb.lastLocation).map(ambulance => {
           const isSelected = selectedAmbulanceId === ambulance.id;
           const ambulancePosition: [number, number] = [
