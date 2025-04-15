@@ -11,7 +11,7 @@ import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 
 // Fix Leaflet default icon issue
-let DefaultIcon = L.icon({
+const defaultIcon = new L.Icon({
   iconUrl: icon,
   shadowUrl: iconShadow,
   iconSize: [25, 41],
@@ -19,10 +19,8 @@ let DefaultIcon = L.icon({
   popupAnchor: [1, -34],
 });
 
-L.Marker.prototype.options.icon = DefaultIcon;
-
 // Custom ambulance icon
-const ambulanceIcon = L.icon({
+const ambulanceIcon = new L.Icon({
   iconUrl: 'https://cdn-icons-png.flaticon.com/512/2180/2180437.png',
   iconSize: [32, 32],
   iconAnchor: [16, 16],
@@ -30,7 +28,7 @@ const ambulanceIcon = L.icon({
 });
 
 // Custom emergency icon
-const emergencyIcon = L.icon({
+const emergencyIcon = new L.Icon({
   iconUrl: 'https://cdn-icons-png.flaticon.com/512/4378/4378050.png',
   iconSize: [32, 32],
   iconAnchor: [16, 16],
@@ -74,9 +72,9 @@ const MapView: React.FC<MapViewProps> = ({
   return (
     <div style={{ height: '100%', width: '100%', position: 'relative' }}>
       <MapContainer 
-        style={{ height: '100%', width: '100%', borderRadius: '0.5rem' }}
-        zoom={zoom}
         center={defaultPosition}
+        zoom={zoom}
+        style={{ height: '100%', width: '100%', borderRadius: '0.5rem' }}
       >
         <MapViewUpdater latitude={latitude} longitude={longitude} zoom={zoom} />
         
