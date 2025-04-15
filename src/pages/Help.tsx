@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   HelpCircle, 
@@ -51,7 +52,7 @@ const Help = () => {
     {
       id: '1',
       role: 'system',
-      content: 'Hello! I\'m your emergency assistance AI. How can I help you today?',
+      content: 'Hello! I\'m your ZepMeds emergency assistance AI. I can help you with questions about our ambulance dispatch system. How can I assist you today?',
       timestamp: new Date()
     }
   ]);
@@ -87,8 +88,15 @@ const Help = () => {
     setIsLoading(true);
     
     try {
-      // Get AI response
-      const response = await AiService.generateResponse(userQuery);
+      // Prepare a system context that limits responses to the ZepMeds system
+      const systemContext = 
+        "You are the ZepMeds Ambulance Dashboard Assistant. ONLY answer questions related to the ZepMeds ambulance dispatch system, emergency management features, and how to use the dashboard. " +
+        "If asked about anything outside this scope, politely explain that you can only provide support for the ZepMeds ambulance system. " +
+        "Focus on helping users operate the dashboard, understand the emergency workflow, ambulance dispatch process, and troubleshoot common issues.";
+      
+      // Get AI response with the context
+      const aiPrompt = `${systemContext}\n\nUser question: ${userQuery}`;
+      const response = await AiService.generateResponse(aiPrompt);
       
       // Add AI response to chat
       const aiMessage: ChatMessage = {

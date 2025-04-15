@@ -1,13 +1,50 @@
 
 import React, { useRef, useEffect, useState } from 'react';
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { EmergencyRequest, Ambulance } from '@/types';
-import EmergencyMarker from './map/EmergencyMarker';
-import AmbulanceMarker from './map/AmbulanceMarker';
+import AiService from '@/services/AiService';
 
-// Use a valid public Mapbox token
-mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
+// Fix for default marker icons in Leaflet with webpack/vite
+import icon from 'leaflet/dist/images/marker-icon.png';
+import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+
+let DefaultIcon = L.icon({
+  iconUrl: icon,
+  shadowUrl: iconShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+});
+
+L.Marker.prototype.options.icon = DefaultIcon;
+
+// Custom ambulance icon
+const ambulanceIcon = L.icon({
+  iconUrl: 'https://cdn-icons-png.flaticon.com/512/2180/2180437.png',
+  iconSize: [32, 32],
+  iconAnchor: [16, 16],
+  popupAnchor: [0, -16]
+});
+
+// Custom emergency icon
+const emergencyIcon = L.icon({
+  iconUrl: 'https://cdn-icons-png.flaticon.com/512/4378/4378050.png',
+  iconSize: [32, 32],
+  iconAnchor: [16, 16],
+  popupAnchor: [0, -16]
+});
+
+// Component to update map center and zoom when props change
+const MapUpdater = ({ center, zoom }: { center: [number, number], zoom: number }) => {
+  const map = useMap();
+  useEffect(() => {
+    map.setView(center, zoom);
+  }, [center, zoom, map]);
+  
+  return null;
+};
 
 interface MapViewProps {
   latitude: number;
@@ -28,102 +65,78 @@ const MapView: React.FC<MapViewProps> = ({
   selectedEmergencyId = null,
   selectedAmbulanceId = null
 }) => {
-  const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
-  const emergencyMarkers = useRef<{ [key: string]: EmergencyMarker }>({});
-  const ambulanceMarkers = useRef<{ [key: string]: AmbulanceMarker }>({});
-  const [mapLoaded, setMapLoaded] = useState(false);
-
-  // Initialize map
-  useEffect(() => {
-    if (!mapContainer.current) return;
-
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/streets-v11',
-      center: [longitude, latitude],
-      zoom: zoom,
-    });
-
-    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
-
-    map.current.on('load', () => {
-      setMapLoaded(true);
-    });
-
-    return () => {
-      if (map.current) {
-        map.current.remove();
-      }
-    };
-  }, []);
-
-  // Update map center and zoom when props change
-  useEffect(() => {
-    if (map.current) {
-      map.current.flyTo({
-        center: [longitude, latitude],
-        zoom: zoom,
-        essential: true
-      });
-    }
-  }, [latitude, longitude, zoom]);
-
-  // Add emergency request markers
-  useEffect(() => {
-    if (!mapLoaded || !map.current) return;
-
-    // Remove old markers
-    Object.values(emergencyMarkers.current).forEach(marker => marker.remove());
-    emergencyMarkers.current = {};
-
-    // Add new markers
-    emergencyRequests.forEach(request => {
-      try {
-        emergencyMarkers.current[request.id] = new EmergencyMarker(
-          request, 
-          selectedEmergencyId === request.id, 
-          map.current!
-        );
-      } catch (error) {
-        console.error(`Error creating marker for emergency ${request.id}:`, error);
-      }
-    });
-
-    return () => {
-      Object.values(emergencyMarkers.current).forEach(marker => marker.remove());
-    };
-  }, [mapLoaded, emergencyRequests, selectedEmergencyId]);
-
-  // Add ambulance markers
-  useEffect(() => {
-    if (!mapLoaded || !map.current) return;
-
-    // Remove old markers
-    Object.values(ambulanceMarkers.current).forEach(marker => marker.remove());
-    ambulanceMarkers.current = {};
-
-    // Add new markers
-    ambulances.forEach(ambulance => {
-      if (!ambulance.lastLocation) return;
+  // GraphHopper API key for routing if needed
+  const graphhopperApiKey = AiService.getInstance().getGraphhopperApiKey();
+  
+  return (
+    <MapContainer 
+      center={[latitude, longitude]} 
+      zoom={zoom} 
+      style={{ height: '100%', width: '100%', borderRadius: '0.5rem' }}
+    >
+      <TileLayer
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
       
-      try {
-        ambulanceMarkers.current[ambulance.id] = new AmbulanceMarker(
-          ambulance, 
-          selectedAmbulanceId === ambulance.id,
-          map.current!
+      <MapUpdater center={[latitude, longitude]} zoom={zoom} />
+      
+      {/* Render Emergency Markers */}
+      {emergencyRequests.map(request => {
+        const isSelected = selectedEmergencyId === request.id;
+        return (
+          <Marker 
+            key={request.id}
+            position={[
+              request.location.coordinates.latitude, 
+              request.location.coordinates.longitude
+            ]}
+            icon={emergencyIcon}
+            zIndexOffset={isSelected ? 1000 : 0}
+          >
+            <Popup>
+              <div>
+                <h3 className="font-bold">{request.name}</h3>
+                <p className="text-sm">{request.location.address}</p>
+                <p className="text-xs mt-1">Status: {request.status}</p>
+                {request.notes && <p className="text-xs mt-1">Notes: {request.notes}</p>}
+              </div>
+            </Popup>
+          </Marker>
         );
-      } catch (error) {
-        console.error(`Error creating marker for ambulance ${ambulance.id}:`, error);
-      }
-    });
-
-    return () => {
-      Object.values(ambulanceMarkers.current).forEach(marker => marker.remove());
-    };
-  }, [mapLoaded, ambulances, selectedAmbulanceId]);
-
-  return <div ref={mapContainer} className="h-full w-full rounded-lg overflow-hidden" />;
+      })}
+      
+      {/* Render Ambulance Markers */}
+      {ambulances.filter(amb => amb.lastLocation).map(ambulance => {
+        const isSelected = selectedAmbulanceId === ambulance.id;
+        return (
+          <Marker 
+            key={ambulance.id}
+            position={[
+              ambulance.lastLocation!.latitude, 
+              ambulance.lastLocation!.longitude
+            ]}
+            icon={ambulanceIcon}
+            zIndexOffset={isSelected ? 1000 : 0}
+          >
+            <Popup>
+              <div>
+                <h3 className="font-bold">{ambulance.name}</h3>
+                <p className="text-sm">{ambulance.vehicleNumber}</p>
+                <p className="text-xs mt-1">Driver: {ambulance.driver.name}</p>
+                <p className="text-xs">Status: {ambulance.status}</p>
+                {ambulance.lastLocation && (
+                  <p className="text-xs mt-1">
+                    Last updated: {new Date(ambulance.lastLocation.timestamp).toLocaleTimeString()}
+                  </p>
+                )}
+              </div>
+            </Popup>
+          </Marker>
+        );
+      })}
+    </MapContainer>
+  );
 };
 
 export default MapView;

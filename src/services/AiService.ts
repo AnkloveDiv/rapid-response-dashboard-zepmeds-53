@@ -2,6 +2,7 @@
 class AiService {
   private static instance: AiService;
   private apiKey: string = "AIzaSyDO_PR2yYpJFhbyRSHp_teJSks8ESrBWhw"; // Default API key
+  private graphhopperApiKey: string = "5c028556-515b-45b3-91bf-8d697aa5c114"; // GraphHopper API key
   
   private constructor() {}
   
@@ -18,6 +19,10 @@ class AiService {
 
   public getApiKey(): string {
     return this.apiKey;
+  }
+  
+  public getGraphhopperApiKey(): string {
+    return this.graphhopperApiKey;
   }
 
   public async generateResponse(prompt: string): Promise<string> {
