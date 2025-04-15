@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import React, { useEffect } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { EmergencyRequest, Ambulance } from '@/types';
@@ -22,7 +22,7 @@ let DefaultIcon = L.icon({
 L.Marker.prototype.options.icon = DefaultIcon;
 
 // Custom ambulance icon
-const ambulanceIcon = new L.Icon({
+const ambulanceIcon = L.icon({
   iconUrl: 'https://cdn-icons-png.flaticon.com/512/2180/2180437.png',
   iconSize: [32, 32],
   iconAnchor: [16, 16],
@@ -30,12 +30,23 @@ const ambulanceIcon = new L.Icon({
 });
 
 // Custom emergency icon
-const emergencyIcon = new L.Icon({
+const emergencyIcon = L.icon({
   iconUrl: 'https://cdn-icons-png.flaticon.com/512/4378/4378050.png',
   iconSize: [32, 32],
   iconAnchor: [16, 16],
   popupAnchor: [0, -16]
 });
+
+// Component to update map view when props change
+function MapPositionUpdater({ latitude, longitude, zoom }: { latitude: number, longitude: number, zoom: number }) {
+  const map = useMap();
+  
+  useEffect(() => {
+    map.setView([latitude, longitude], zoom);
+  }, [map, latitude, longitude, zoom]);
+  
+  return null;
+}
 
 interface MapViewProps {
   latitude: number;
@@ -58,15 +69,17 @@ const MapView: React.FC<MapViewProps> = ({
 }) => {
   // GraphHopper API key for routing if needed
   const graphhopperApiKey = AiService.getGraphhopperApiKey();
-  const centerPosition: [number, number] = [latitude, longitude];
+  const defaultPosition: [number, number] = [latitude, longitude];
   
   return (
     <div style={{ height: '100%', width: '100%', position: 'relative' }}>
       <MapContainer 
-        center={centerPosition}
+        center={defaultPosition}
         zoom={zoom} 
         style={{ height: '100%', width: '100%', borderRadius: '0.5rem' }}
       >
+        <MapPositionUpdater latitude={latitude} longitude={longitude} zoom={zoom} />
+        
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
