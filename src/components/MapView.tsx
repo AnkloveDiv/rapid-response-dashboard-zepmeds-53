@@ -38,7 +38,7 @@ const emergencyIcon = L.icon({
 });
 
 // Component to update map view when props change
-function MapPositionUpdater({ latitude, longitude, zoom }: { latitude: number, longitude: number, zoom: number }) {
+function MapViewUpdater({ latitude, longitude, zoom }: { latitude: number, longitude: number, zoom: number }) {
   const map = useMap();
   
   useEffect(() => {
@@ -74,15 +74,15 @@ const MapView: React.FC<MapViewProps> = ({
   return (
     <div style={{ height: '100%', width: '100%', position: 'relative' }}>
       <MapContainer 
-        center={defaultPosition}
-        zoom={zoom} 
         style={{ height: '100%', width: '100%', borderRadius: '0.5rem' }}
+        zoom={zoom}
+        center={defaultPosition}
       >
-        <MapPositionUpdater latitude={latitude} longitude={longitude} zoom={zoom} />
+        <MapViewUpdater latitude={latitude} longitude={longitude} zoom={zoom} />
         
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
         
         {/* Render Emergency Markers */}
