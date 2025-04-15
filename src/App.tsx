@@ -12,6 +12,10 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Emergencies from "./pages/Emergencies";
 import EmergencyDetails from "./pages/EmergencyDetails";
+import Ambulances from "./pages/Ambulances";
+import Patients from "./pages/Patients";
+import Reports from "./pages/Reports";
+import LiveMap from "./pages/LiveMap";
 import Help from "./pages/Help";
 import NotFound from "./pages/NotFound";
 
@@ -32,6 +36,10 @@ const App = () => (
             <Route path="/" element={<RequireAuth><Dashboard /></RequireAuth>} />
             <Route path="/emergencies" element={<RequireAuth><Emergencies /></RequireAuth>} />
             <Route path="/emergencies/:id" element={<RequireAuth><EmergencyDetails /></RequireAuth>} />
+            <Route path="/ambulances" element={<RequireAuth><Ambulances /></RequireAuth>} />
+            <Route path="/patients" element={<RequireAuth><Patients /></RequireAuth>} />
+            <Route path="/reports" element={<RequireAuth><Reports /></RequireAuth>} />
+            <Route path="/map" element={<RequireAuth><LiveMap /></RequireAuth>} />
             <Route path="/help" element={<RequireAuth><Help /></RequireAuth>} />
 
             {/* Redirect old Index page to Dashboard */}

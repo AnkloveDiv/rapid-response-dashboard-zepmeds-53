@@ -62,6 +62,48 @@ export type Database = {
           },
         ]
       }
+      ambulances: {
+        Row: {
+          created_at: string | null
+          driver_name: string
+          driver_phone: string
+          id: string
+          last_latitude: number | null
+          last_longitude: number | null
+          last_updated: string | null
+          name: string
+          status: string
+          updated_at: string | null
+          vehicle_number: string
+        }
+        Insert: {
+          created_at?: string | null
+          driver_name: string
+          driver_phone: string
+          id?: string
+          last_latitude?: number | null
+          last_longitude?: number | null
+          last_updated?: string | null
+          name: string
+          status?: string
+          updated_at?: string | null
+          vehicle_number: string
+        }
+        Update: {
+          created_at?: string | null
+          driver_name?: string
+          driver_phone?: string
+          id?: string
+          last_latitude?: number | null
+          last_longitude?: number | null
+          last_updated?: string | null
+          name?: string
+          status?: string
+          updated_at?: string | null
+          vehicle_number?: string
+        }
+        Relationships: []
+      }
       customers: {
         Row: {
           created_at: string | null
@@ -145,6 +187,7 @@ export type Database = {
           location: Json
           name: string
           notes: string | null
+          patient_id: string | null
           phone: string
           status: string
           timestamp: string
@@ -157,6 +200,7 @@ export type Database = {
           location: Json
           name: string
           notes?: string | null
+          patient_id?: string | null
           phone: string
           status?: string
           timestamp?: string
@@ -169,12 +213,21 @@ export type Database = {
           location?: Json
           name?: string
           notes?: string | null
+          patient_id?: string | null
           phone?: string
           status?: string
           timestamp?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "emergency_requests_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       order_items: {
         Row: {
@@ -289,6 +342,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      patients: {
+        Row: {
+          address: string | null
+          created_at: string | null
+          emergency_contact: string | null
+          id: string
+          medical_notes: string | null
+          name: string
+          phone: string
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string | null
+          emergency_contact?: string | null
+          id?: string
+          medical_notes?: string | null
+          name: string
+          phone: string
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string | null
+          emergency_contact?: string | null
+          id?: string
+          medical_notes?: string | null
+          name?: string
+          phone?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       prescriptions: {
         Row: {
@@ -411,6 +497,54 @@ export type Database = {
           phone?: string | null
         }
         Relationships: []
+      }
+      reports: {
+        Row: {
+          ambulance_id: string | null
+          created_at: string | null
+          description: string | null
+          emergency_id: string | null
+          id: string
+          report_date: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          ambulance_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          emergency_id?: string | null
+          id?: string
+          report_date?: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          ambulance_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          emergency_id?: string | null
+          id?: string
+          report_date?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_ambulance_id_fkey"
+            columns: ["ambulance_id"]
+            isOneToOne: false
+            referencedRelation: "ambulances"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_emergency_id_fkey"
+            columns: ["emergency_id"]
+            isOneToOne: false
+            referencedRelation: "emergency_requests"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rider_notifications: {
         Row: {
