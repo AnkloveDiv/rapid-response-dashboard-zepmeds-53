@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -6,8 +5,8 @@ import { EmergencyRequest, Ambulance } from '@/types';
 import EmergencyMarker from './map/EmergencyMarker';
 import AmbulanceMarker from './map/AmbulanceMarker';
 
-// Temporary public token - In production, this would come from environment variables
-const MAPBOX_TOKEN = 'pk.eyJ1IjoiZGVtby1hY2NvdW50LXplcG1lZHMiLCJhIjoiY2tlMHpxYXJpMGI3YjJ6cnZ5N21janF3YSJ9.D2YGJDvj6kRhPpQ1NXvr7A';
+// Use a valid public Mapbox token
+const MAPBOX_TOKEN = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 mapboxgl.accessToken = MAPBOX_TOKEN;
 
 interface MapViewProps {
