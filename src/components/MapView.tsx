@@ -10,6 +10,7 @@ import AiService from '@/services/AiService';
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 
+// Fix Leaflet default icon issue
 let DefaultIcon = L.icon({
   iconUrl: icon,
   shadowUrl: iconShadow,
@@ -21,7 +22,7 @@ let DefaultIcon = L.icon({
 L.Marker.prototype.options.icon = DefaultIcon;
 
 // Custom ambulance icon
-const ambulanceIcon = L.icon({
+const ambulanceIcon = new L.Icon({
   iconUrl: 'https://cdn-icons-png.flaticon.com/512/2180/2180437.png',
   iconSize: [32, 32],
   iconAnchor: [16, 16],
@@ -29,28 +30,12 @@ const ambulanceIcon = L.icon({
 });
 
 // Custom emergency icon
-const emergencyIcon = L.icon({
+const emergencyIcon = new L.Icon({
   iconUrl: 'https://cdn-icons-png.flaticon.com/512/4378/4378050.png',
   iconSize: [32, 32],
   iconAnchor: [16, 16],
   popupAnchor: [0, -16]
 });
-
-// Component to update map center and zoom when props change
-const MapUpdater = ({ center, zoom }: { center: [number, number], zoom: number }) => {
-  const map = L.map('map-container', { center, zoom });
-  
-  React.useEffect(() => {
-    map.setView(center, zoom);
-    
-    // Cleanup function
-    return () => {
-      map.remove();
-    };
-  }, [center, zoom, map]);
-  
-  return null;
-};
 
 interface MapViewProps {
   latitude: number;
@@ -73,15 +58,14 @@ const MapView: React.FC<MapViewProps> = ({
 }) => {
   // GraphHopper API key for routing if needed
   const graphhopperApiKey = AiService.getGraphhopperApiKey();
-  const center: L.LatLngExpression = [latitude, longitude];
+  const centerPosition: [number, number] = [latitude, longitude];
   
   return (
     <div style={{ height: '100%', width: '100%', position: 'relative' }}>
       <MapContainer 
-        center={center}
+        center={centerPosition}
         zoom={zoom} 
         style={{ height: '100%', width: '100%', borderRadius: '0.5rem' }}
-        id="map-container"
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -91,7 +75,7 @@ const MapView: React.FC<MapViewProps> = ({
         {/* Render Emergency Markers */}
         {emergencyRequests.map(request => {
           const isSelected = selectedEmergencyId === request.id;
-          const position: L.LatLngExpression = [
+          const requestPosition: [number, number] = [
             request.location.coordinates.latitude, 
             request.location.coordinates.longitude
           ];
@@ -99,7 +83,7 @@ const MapView: React.FC<MapViewProps> = ({
           return (
             <Marker 
               key={request.id}
-              position={position}
+              position={requestPosition}
               icon={emergencyIcon}
             >
               <Popup>
@@ -117,7 +101,7 @@ const MapView: React.FC<MapViewProps> = ({
         {/* Render Ambulance Markers */}
         {ambulances.filter(amb => amb.lastLocation).map(ambulance => {
           const isSelected = selectedAmbulanceId === ambulance.id;
-          const position: L.LatLngExpression = [
+          const ambulancePosition: [number, number] = [
             ambulance.lastLocation!.latitude, 
             ambulance.lastLocation!.longitude
           ];
@@ -125,7 +109,7 @@ const MapView: React.FC<MapViewProps> = ({
           return (
             <Marker 
               key={ambulance.id}
-              position={position}
+              position={ambulancePosition}
               icon={ambulanceIcon}
             >
               <Popup>
