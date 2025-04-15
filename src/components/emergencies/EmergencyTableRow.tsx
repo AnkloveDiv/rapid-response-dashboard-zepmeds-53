@@ -1,7 +1,8 @@
 
 import React, { useState } from 'react';
 import { format } from 'date-fns';
-import { MapPin, MoreHorizontal, Ambulance, Phone, ClipboardList } from 'lucide-react';
+import { MapPin, MoreHorizontal, Phone, ClipboardList } from 'lucide-react';
+import { AmbulanceIcon } from 'lucide-react'; // Renamed the Ambulance icon import
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -188,7 +189,7 @@ const EmergencyTableRow = ({ request }: EmergencyTableRowProps) => {
             <DropdownMenuSeparator />
             {request.status === 'pending' && (
               <DropdownMenuItem onClick={handleOpenDispatch}>
-                <Ambulance className="mr-2 h-4 w-4" />
+                <AmbulanceIcon className="mr-2 h-4 w-4" />
                 Dispatch Ambulance
               </DropdownMenuItem>
             )}
