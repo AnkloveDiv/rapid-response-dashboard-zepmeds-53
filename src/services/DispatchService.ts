@@ -52,21 +52,7 @@ class DispatchService {
     try {
       console.log("Dispatching ambulance:", ambulanceId, "for emergency:", emergencyId);
       
-      // First, update the ambulance status to dispatched
-      const { error: ambulanceError } = await supabase
-        .from('ambulances')
-        .update({
-          status: 'dispatched',
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', ambulanceId);
-        
-      if (ambulanceError) {
-        console.error("Error updating ambulance:", ambulanceError);
-        throw ambulanceError;
-      }
-      
-      // Then, update the emergency request
+      // First, update the emergency request
       const { error: emergencyError } = await supabase
         .from('emergency_requests')
         .update({
@@ -78,17 +64,32 @@ class DispatchService {
         
       if (emergencyError) {
         console.error("Error updating emergency request:", emergencyError);
+        throw emergencyError;
+      }
+      
+      // Then, update the ambulance status to dispatched
+      const { error: ambulanceError } = await supabase
+        .from('ambulances')
+        .update({
+          status: 'dispatched',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', ambulanceId);
         
-        // If there was an error updating the emergency, we should revert the ambulance status
+      if (ambulanceError) {
+        console.error("Error updating ambulance:", ambulanceError);
+        
+        // If there was an error updating the ambulance, we should revert the emergency request change
         await supabase
-          .from('ambulances')
+          .from('emergency_requests')
           .update({
-            status: 'available',
+            status: 'pending',
+            ambulance_id: null,
             updated_at: new Date().toISOString()
           })
-          .eq('id', ambulanceId);
+          .eq('id', emergencyId);
           
-        throw emergencyError;
+        throw ambulanceError;
       }
       
       return true;

@@ -9,7 +9,10 @@ import {
   ClipboardList, 
   Map, 
   Settings, 
-  HelpCircle 
+  HelpCircle,
+  Navigation,
+  Building,
+  MapPin
 } from 'lucide-react';
 
 const Sidebar: React.FC = () => {
@@ -33,6 +36,16 @@ const Sidebar: React.FC = () => {
       label: 'Patients',
       path: '/patients',
       icon: <Users className="h-5 w-5" />,
+    },
+    {
+      label: 'Live Tracking',
+      path: '/live-tracking',
+      icon: <MapPin className="h-5 w-5" />,
+    },
+    {
+      label: 'Nearest Hospitals',
+      path: '/nearest-hospitals',
+      icon: <Building className="h-5 w-5" />,
     },
     {
       label: 'Reports',

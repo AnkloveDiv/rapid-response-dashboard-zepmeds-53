@@ -14,8 +14,10 @@ const EmergencyStatusBadge: React.FC<EmergencyStatusBadgeProps> = ({ status }) =
     case 'confirming':
       return <Badge className="bg-orange-500 hover:bg-orange-600">Pending</Badge>;
     case 'dispatched':
+    case 'en_route':
       return <Badge className="bg-blue-500 hover:bg-blue-600">Dispatched</Badge>;
     case 'completed':
+    case 'arrived':
       return <Badge className="bg-green-500 hover:bg-green-600">Completed</Badge>;
     case 'cancelled':
       return <Badge className="bg-red-500 hover:bg-red-600">Cancelled</Badge>;

@@ -1,4 +1,3 @@
-
 // Types for emergency request data
 export interface EmergencyRequest {
   id: string;
@@ -12,7 +11,7 @@ export interface EmergencyRequest {
       longitude: number;
     };
   };
-  status: 'pending' | 'dispatched' | 'completed' | 'cancelled' | 'requested' | 'confirming';
+  status: 'pending' | 'dispatched' | 'completed' | 'cancelled' | 'requested' | 'confirming' | 'en_route' | 'arrived';
   notes?: string;
   ambulanceId?: string;
 }

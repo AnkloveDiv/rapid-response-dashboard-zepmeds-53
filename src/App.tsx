@@ -17,6 +17,9 @@ import Patients from "./pages/Patients";
 import Reports from "./pages/Reports";
 import LiveMap from "./pages/LiveMap";
 import Help from "./pages/Help";
+import Settings from "./pages/Settings";
+import LiveTracking from "./pages/LiveTracking";
+import NearestHospitals from "./pages/NearestHospitals";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,6 +44,9 @@ const App = () => (
             <Route path="/reports" element={<RequireAuth><Reports /></RequireAuth>} />
             <Route path="/map" element={<RequireAuth><LiveMap /></RequireAuth>} />
             <Route path="/help" element={<RequireAuth><Help /></RequireAuth>} />
+            <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
+            <Route path="/live-tracking" element={<RequireAuth><LiveTracking /></RequireAuth>} />
+            <Route path="/nearest-hospitals" element={<RequireAuth><NearestHospitals /></RequireAuth>} />
 
             {/* Redirect old Index page to Dashboard */}
             <Route path="/index" element={<Navigate to="/" replace />} />
