@@ -227,6 +227,51 @@ const Emergencies = () => {
     }
   };
 
+  const handleStatusChange = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('emergency_requests')
+        .select('*')
+        .order('timestamp', { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      const transformedData: EmergencyRequest[] = data.map(item => {
+        const locationData = typeof item.location === 'string' 
+          ? JSON.parse(item.location) 
+          : item.location;
+          
+        return {
+          id: item.id,
+          name: item.name,
+          phone: item.phone,
+          timestamp: item.timestamp,
+          location: {
+            address: locationData.address || '',
+            coordinates: {
+              latitude: locationData.coordinates?.latitude || 0,
+              longitude: locationData.coordinates?.longitude || 0
+            }
+          },
+          status: item.status as EmergencyRequest['status'],
+          notes: item.notes || undefined,
+          ambulanceId: item.ambulance_id || undefined
+        };
+      });
+
+      setEmergencyRequests(transformedData);
+    } catch (error) {
+      console.error('Error refreshing emergency requests:', error);
+      toast({
+        title: "Error",
+        description: "Failed to refresh emergency requests. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <MainLayout>
@@ -329,7 +374,11 @@ const Emergencies = () => {
                     </TableRow>
                   ) : (
                     filteredRequests.map((request) => (
-                      <EmergencyTableRow key={request.id} request={request} />
+                      <EmergencyTableRow 
+                        key={request.id} 
+                        request={request} 
+                        onStatusChange={handleStatusChange} 
+                      />
                     ))
                   )}
                 </TableBody>
