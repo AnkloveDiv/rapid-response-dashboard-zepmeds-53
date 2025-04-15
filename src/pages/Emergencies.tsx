@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { PlusCircle, ArrowUpDown } from 'lucide-react';
 import { 
@@ -15,6 +14,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  TableCell,
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import MainLayout from '@/components/layout/MainLayout';
@@ -22,7 +22,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { EmergencyRequest } from '@/types';
 import AudioService from '@/services/AudioService';
 
-// Import new components
 import EmergencyFilter from '@/components/emergencies/EmergencyFilter';
 import EmergencyTableRow from '@/components/emergencies/EmergencyTableRow';
 
@@ -51,7 +50,6 @@ const Emergencies = () => {
         }
 
         const transformedData: EmergencyRequest[] = data.map(item => {
-          // Ensure proper typing for the location field
           const locationData = typeof item.location === 'string' 
             ? JSON.parse(item.location) 
             : item.location;
@@ -100,7 +98,6 @@ const Emergencies = () => {
         (payload) => {
           console.log('New emergency request received:', payload);
           
-          // Ensure proper typing for the location field
           const locationData = typeof payload.new.location === 'string' 
             ? JSON.parse(payload.new.location) 
             : payload.new.location;
@@ -140,7 +137,6 @@ const Emergencies = () => {
     };
   }, [toast]);
 
-  // Apply filters and sorting to the emergency requests
   useEffect(() => {
     let result = [...emergencyRequests];
     
