@@ -1,17 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { format } from 'date-fns';
-import { 
-  Ambulance, 
-  ArrowUpDown, 
-  PhoneOutgoing, 
-  Clock, 
-  MapPin, 
-  PlusCircle,
-  Search,
-  Eye
-} from 'lucide-react';
+import { PlusCircle, ArrowUpDown } from 'lucide-react';
 import { 
   Card, 
   CardContent, 
@@ -19,39 +8,23 @@ import {
   CardHeader, 
   CardTitle 
 } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import MainLayout from '@/components/layout/MainLayout';
 import { supabase } from '@/integrations/supabase/client';
 import { EmergencyRequest } from '@/types';
 import AudioService from '@/services/AudioService';
+
+// Import new components
+import EmergencyFilter from '@/components/emergencies/EmergencyFilter';
+import EmergencyTableRow from '@/components/emergencies/EmergencyTableRow';
 
 const Emergencies = () => {
   const [emergencyRequests, setEmergencyRequests] = useState<EmergencyRequest[]>([]);
@@ -167,6 +140,7 @@ const Emergencies = () => {
     };
   }, [toast]);
 
+  // Apply filters and sorting to the emergency requests
   useEffect(() => {
     let result = [...emergencyRequests];
     
@@ -217,21 +191,6 @@ const Emergencies = () => {
       key,
       direction: sortConfig.key === key && sortConfig.direction === 'asc' ? 'desc' : 'asc'
     });
-  };
-
-  const getStatusBadge = (status: EmergencyRequest['status']) => {
-    switch (status) {
-      case 'pending':
-        return <Badge className="bg-orange-500 hover:bg-orange-600">Pending</Badge>;
-      case 'dispatched':
-        return <Badge className="bg-blue-500 hover:bg-blue-600">Dispatched</Badge>;
-      case 'completed':
-        return <Badge className="bg-green-500 hover:bg-green-600">Completed</Badge>;
-      case 'cancelled':
-        return <Badge className="bg-red-500 hover:bg-red-600">Cancelled</Badge>;
-      default:
-        return <Badge>Unknown</Badge>;
-    }
   };
 
   const createEmergencyRequest = async () => {
@@ -313,36 +272,12 @@ const Emergencies = () => {
                   {filteredRequests.length} total requests
                 </CardDescription>
               </div>
-              <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
-                <div className="relative">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-                  <Input
-                    type="search"
-                    placeholder="Search requests..."
-                    className="pl-9 w-full sm:w-[250px]"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                </div>
-                <Select
-                  value={statusFilter}
-                  onValueChange={(value) => setStatusFilter(value as EmergencyRequest['status'] | 'all')}
-                >
-                  <SelectTrigger className="w-full sm:w-[180px]">
-                    <SelectValue placeholder="Filter by status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectLabel>Status</SelectLabel>
-                      <SelectItem value="all">All Statuses</SelectItem>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="dispatched">Dispatched</SelectItem>
-                      <SelectItem value="completed">Completed</SelectItem>
-                      <SelectItem value="cancelled">Cancelled</SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
+              <EmergencyFilter 
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                statusFilter={statusFilter}
+                setStatusFilter={setStatusFilter}
+              />
             </div>
           </CardHeader>
           <CardContent>
@@ -398,77 +333,7 @@ const Emergencies = () => {
                     </TableRow>
                   ) : (
                     filteredRequests.map((request) => (
-                      <TableRow key={request.id}>
-                        <TableCell>{getStatusBadge(request.status)}</TableCell>
-                        <TableCell>
-                          <div className="font-medium">{request.name}</div>
-                          <div className="flex items-center text-sm text-gray-500">
-                            <PhoneOutgoing className="mr-1 h-3 w-3" />
-                            {request.phone}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-start">
-                            <MapPin className="mr-1 h-4 w-4 text-gray-500 mt-0.5" />
-                            <span className="text-sm">{request.location.address}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center">
-                            <Clock className="mr-1 h-4 w-4 text-gray-500" />
-                            <span className="text-sm">{format(new Date(request.timestamp), 'MMM d, h:mm a')}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm">
-                                <span className="sr-only">Open menu</span>
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="16"
-                                  height="16"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  className="lucide lucide-more-horizontal"
-                                >
-                                  <circle cx="12" cy="12" r="1" />
-                                  <circle cx="19" cy="12" r="1" />
-                                  <circle cx="5" cy="12" r="1" />
-                                </svg>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuItem>
-                                <Link to={`/emergencies/${request.id}`} className="flex items-center w-full">
-                                  <Eye className="mr-2 h-4 w-4" />
-                                  View Details
-                                </Link>
-                              </DropdownMenuItem>
-                              {request.status === 'pending' && (
-                                <DropdownMenuItem>
-                                  <Link to={`/emergencies/${request.id}`} className="flex items-center w-full">
-                                    <Ambulance className="mr-2 h-4 w-4" />
-                                    Dispatch Ambulance
-                                  </Link>
-                                </DropdownMenuItem>
-                              )}
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem>
-                                <a href={`tel:${request.phone}`} className="flex items-center w-full">
-                                  <PhoneOutgoing className="mr-2 h-4 w-4" />
-                                  Call Patient
-                                </a>
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
+                      <EmergencyTableRow key={request.id} request={request} />
                     ))
                   )}
                 </TableBody>
