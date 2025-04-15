@@ -66,11 +66,11 @@ const MapView: React.FC<MapViewProps> = ({
   selectedAmbulanceId = null
 }) => {
   // GraphHopper API key for routing if needed
-  const graphhopperApiKey = AiService.getInstance().getGraphhopperApiKey();
+  const graphhopperApiKey = AiService.getGraphhopperApiKey();
   
   return (
     <MapContainer 
-      center={[latitude, longitude]} 
+      center={[latitude, longitude] as L.LatLngExpression} 
       zoom={zoom} 
       style={{ height: '100%', width: '100%', borderRadius: '0.5rem' }}
     >
@@ -84,13 +84,15 @@ const MapView: React.FC<MapViewProps> = ({
       {/* Render Emergency Markers */}
       {emergencyRequests.map(request => {
         const isSelected = selectedEmergencyId === request.id;
+        const position: L.LatLngExpression = [
+          request.location.coordinates.latitude, 
+          request.location.coordinates.longitude
+        ];
+        
         return (
           <Marker 
             key={request.id}
-            position={[
-              request.location.coordinates.latitude, 
-              request.location.coordinates.longitude
-            ]}
+            position={position}
             icon={emergencyIcon}
             zIndexOffset={isSelected ? 1000 : 0}
           >
@@ -109,13 +111,15 @@ const MapView: React.FC<MapViewProps> = ({
       {/* Render Ambulance Markers */}
       {ambulances.filter(amb => amb.lastLocation).map(ambulance => {
         const isSelected = selectedAmbulanceId === ambulance.id;
+        const position: L.LatLngExpression = [
+          ambulance.lastLocation!.latitude, 
+          ambulance.lastLocation!.longitude
+        ];
+        
         return (
           <Marker 
             key={ambulance.id}
-            position={[
-              ambulance.lastLocation!.latitude, 
-              ambulance.lastLocation!.longitude
-            ]}
+            position={position}
             icon={ambulanceIcon}
             zIndexOffset={isSelected ? 1000 : 0}
           >

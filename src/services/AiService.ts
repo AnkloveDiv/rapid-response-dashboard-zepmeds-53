@@ -13,22 +13,22 @@ class AiService {
     return AiService.instance;
   }
 
-  public setApiKey(key: string) {
-    this.apiKey = key;
+  public static setApiKey(key: string) {
+    AiService.getInstance().apiKey = key;
   }
 
-  public getApiKey(): string {
-    return this.apiKey;
+  public static getApiKey(): string {
+    return AiService.getInstance().apiKey;
   }
   
-  public getGraphhopperApiKey(): string {
-    return this.graphhopperApiKey;
+  public static getGraphhopperApiKey(): string {
+    return AiService.getInstance().graphhopperApiKey;
   }
 
-  public async generateResponse(prompt: string): Promise<string> {
+  public static async generateResponse(prompt: string): Promise<string> {
     try {
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${this.apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${AiService.getInstance().apiKey}`,
         {
           method: 'POST',
           headers: {
@@ -60,4 +60,5 @@ class AiService {
   }
 }
 
-export default AiService.getInstance();
+// Export as a static service, to be used as AiService.method() rather than AiService.getInstance().method()
+export default AiService;
