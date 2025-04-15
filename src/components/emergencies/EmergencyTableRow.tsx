@@ -12,66 +12,29 @@ import EmergencyStatusBadge from './EmergencyStatusBadge';
 import EmergencyDetailsDialog from './EmergencyDetailsDialog';
 import DispatchAmbulanceDialog from './DispatchAmbulanceDialog';
 import EmergencyActions from './EmergencyActions';
-import DispatchService from '@/services/DispatchService';
+import { useNavigate } from 'react-router-dom';
 
 interface EmergencyTableRowProps {
   request: EmergencyRequest;
+  onStatusChange: () => void;
 }
 
-const EmergencyTableRow = ({ request }: EmergencyTableRowProps) => {
+const EmergencyTableRow = ({ request, onStatusChange }: EmergencyTableRowProps) => {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isDispatchOpen, setIsDispatchOpen] = useState(false);
-  const [availableAmbulances, setAvailableAmbulances] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
-  const handleOpenDispatch = async () => {
-    setIsDispatchOpen(true);
-    
-    try {
-      const ambulances = await DispatchService.fetchAvailableAmbulances();
-      setAvailableAmbulances(ambulances);
-    } catch (error) {
-      console.error('Error fetching available ambulances:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load available ambulances.",
-        variant: "destructive",
-      });
-    }
+  const handleViewFullDetails = () => {
+    navigate(`/emergencies/${request.id}`);
   };
 
-  const handleDispatchAmbulance = async (ambulanceId: string) => {
-    if (!ambulanceId) {
-      toast({
-        title: "Error",
-        description: "Please select an ambulance to dispatch.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setIsLoading(true);
-    
-    try {
-      await DispatchService.dispatchAmbulance(request.id, ambulanceId);
-      
-      toast({
-        title: "Ambulance Dispatched",
-        description: "The ambulance has been successfully dispatched to the emergency location.",
-      });
-      
-      setIsDispatchOpen(false);
-    } catch (error) {
-      console.error('Error dispatching ambulance:', error);
-      toast({
-        title: "Error",
-        description: "Failed to dispatch ambulance. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+  const handleDispatchSuccess = () => {
+    onStatusChange();
+    toast({
+      title: "Ambulance Dispatched",
+      description: "The ambulance has been successfully dispatched to the emergency location.",
+    });
   };
 
   return (
@@ -100,15 +63,8 @@ const EmergencyTableRow = ({ request }: EmergencyTableRowProps) => {
       <TableCell className="text-right">
         <EmergencyActions 
           request={request}
-          onViewDetails={() => setIsDetailsOpen(true)}
-          onOpenDispatch={handleOpenDispatch}
-        />
-        
-        {/* Details Dialog */}
-        <EmergencyDetailsDialog 
-          request={request}
-          isOpen={isDetailsOpen}
-          onOpenChange={setIsDetailsOpen}
+          onViewDetails={handleViewFullDetails}
+          onOpenDispatch={() => setIsDispatchOpen(true)}
         />
         
         {/* Dispatch Dialog */}
@@ -116,9 +72,7 @@ const EmergencyTableRow = ({ request }: EmergencyTableRowProps) => {
           request={request}
           isOpen={isDispatchOpen}
           onOpenChange={setIsDispatchOpen}
-          ambulances={availableAmbulances}
-          onDispatch={handleDispatchAmbulance}
-          isLoading={isLoading}
+          onDispatchSuccess={handleDispatchSuccess}
         />
       </TableCell>
     </TableRow>

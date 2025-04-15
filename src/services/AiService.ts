@@ -1,7 +1,7 @@
 
 class AiService {
   private static instance: AiService;
-  private apiKey: string | null = null;
+  private apiKey: string = "AIzaSyDO_PR2yYpJFhbyRSHp_teJSks8ESrBWhw"; // Default API key
   
   private constructor() {}
   
@@ -16,15 +16,11 @@ class AiService {
     this.apiKey = key;
   }
 
-  public getApiKey(): string | null {
+  public getApiKey(): string {
     return this.apiKey;
   }
 
   public async generateResponse(prompt: string): Promise<string> {
-    if (!this.apiKey) {
-      return "API key not set. Please configure your API key in the settings.";
-    }
-
     try {
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${this.apiKey}`,

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -17,28 +17,82 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { EmergencyRequest, Ambulance } from '@/types';
+import { useToast } from "@/hooks/use-toast";
+import DispatchService from '@/services/DispatchService';
 
 interface DispatchAmbulanceDialogProps {
   request: EmergencyRequest;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  ambulances: Ambulance[];
-  onDispatch: (ambulanceId: string) => void;
-  isLoading: boolean;
+  onDispatchSuccess: () => void;
 }
 
 const DispatchAmbulanceDialog: React.FC<DispatchAmbulanceDialogProps> = ({
   request,
   isOpen,
   onOpenChange,
-  ambulances,
-  onDispatch,
-  isLoading
+  onDispatchSuccess
 }) => {
   const [selectedAmbulanceId, setSelectedAmbulanceId] = useState<string>('');
+  const [ambulances, setAmbulances] = useState<Ambulance[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoadingAmbulances, setIsLoadingAmbulances] = useState<boolean>(false);
+  const { toast } = useToast();
 
-  const handleDispatch = () => {
-    onDispatch(selectedAmbulanceId);
+  useEffect(() => {
+    if (isOpen) {
+      fetchAmbulances();
+    }
+  }, [isOpen]);
+
+  const fetchAmbulances = async () => {
+    setIsLoadingAmbulances(true);
+    try {
+      const availableAmbulances = await DispatchService.fetchAvailableAmbulances();
+      setAmbulances(availableAmbulances);
+    } catch (error) {
+      console.error('Error fetching ambulances:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load available ambulances",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingAmbulances(false);
+    }
+  };
+
+  const handleDispatch = async () => {
+    if (!selectedAmbulanceId) {
+      toast({
+        title: "Error",
+        description: "Please select an ambulance to dispatch",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await DispatchService.dispatchAmbulance(request.id, selectedAmbulanceId);
+      
+      toast({
+        title: "Success",
+        description: "Ambulance has been dispatched successfully",
+      });
+      
+      onOpenChange(false);
+      onDispatchSuccess();
+    } catch (error) {
+      console.error('Error dispatching ambulance:', error);
+      toast({
+        title: "Error",
+        description: "Failed to dispatch ambulance. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -59,7 +113,9 @@ const DispatchAmbulanceDialog: React.FC<DispatchAmbulanceDialogProps> = ({
           
           <div className="space-y-2">
             <h3 className="text-sm font-medium text-gray-500">Available Ambulances</h3>
-            {ambulances.length === 0 ? (
+            {isLoadingAmbulances ? (
+              <p className="text-sm text-gray-500">Loading ambulances...</p>
+            ) : ambulances.length === 0 ? (
               <p className="text-sm text-gray-500">No ambulances available</p>
             ) : (
               <Select value={selectedAmbulanceId} onValueChange={setSelectedAmbulanceId}>

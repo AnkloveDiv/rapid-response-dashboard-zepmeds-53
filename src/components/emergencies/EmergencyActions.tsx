@@ -23,6 +23,9 @@ const EmergencyActions: React.FC<EmergencyActionsProps> = ({
   onViewDetails,
   onOpenDispatch
 }) => {
+  // Check if the request is in a state where dispatching is allowed
+  const canDispatch = ['pending', 'requested', 'confirming'].includes(request.status);
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -38,7 +41,7 @@ const EmergencyActions: React.FC<EmergencyActionsProps> = ({
           View Details
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        {request.status === 'pending' && (
+        {canDispatch && (
           <DropdownMenuItem onClick={onOpenDispatch}>
             <AmbulanceIcon className="mr-2 h-4 w-4" />
             Dispatch Ambulance

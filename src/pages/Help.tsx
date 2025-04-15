@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   HelpCircle, 
@@ -48,7 +47,6 @@ const Help = () => {
   const { toast } = useToast();
   const [userQuery, setUserQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [apiKey, setApiKey] = useState(AiService.getApiKey() || 'AIzaSyDO_PR2yYpJFhbyRSHp_teJSks8ESrBWhw');
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
     {
       id: '1',
@@ -68,23 +66,10 @@ const Help = () => {
     "How can I update ambulance information?"
   ];
 
-  // Save API key on component mount
-  useEffect(() => {
-    if (apiKey) {
-      AiService.setApiKey(apiKey);
-    }
-  }, [apiKey]);
-
   // Automatic scroll to bottom of chat
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages]);
-
-  const handleApiKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newKey = e.target.value;
-    setApiKey(newKey);
-    AiService.setApiKey(newKey);
-  };
 
   const handleSendMessage = async () => {
     if (!userQuery.trim()) return;
@@ -250,18 +235,6 @@ const Help = () => {
                       <Send className="h-4 w-4" />
                     )}
                   </Button>
-                </div>
-                <div className="w-full">
-                  <div className="flex items-center space-x-2">
-                    <div className="text-xs text-gray-500">API Key:</div>
-                    <Input
-                      type="password"
-                      value={apiKey}
-                      onChange={handleApiKeyChange}
-                      placeholder="Enter Gemini API Key"
-                      className="text-xs h-7"
-                    />
-                  </div>
                 </div>
               </CardFooter>
             </Card>

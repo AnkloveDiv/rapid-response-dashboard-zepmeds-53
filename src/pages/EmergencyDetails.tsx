@@ -13,7 +13,8 @@ import {
   AlertCircle,
   CheckCircle,
   X,
-  ArrowLeft
+  ArrowLeft,
+  Ambulance as AmbulanceIcon
 } from 'lucide-react';
 import { 
   Card, 
@@ -50,6 +51,7 @@ import MainLayout from '@/components/layout/MainLayout';
 import { supabase } from '@/integrations/supabase/client';
 import { EmergencyRequest, Ambulance } from '@/types';
 import MapView from '@/components/MapView';
+import DispatchService from '@/services/DispatchService';
 
 const EmergencyDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -63,6 +65,7 @@ const EmergencyDetails = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState(false);
   const [actionType, setActionType] = useState<'dispatch' | 'complete' | 'cancel' | null>(null);
+  const [isLoadingAmbulances, setIsLoadingAmbulances] = useState(false);
 
   useEffect(() => {
     const fetchEmergencyData = async () => {
@@ -109,42 +112,7 @@ const EmergencyDetails = () => {
           setNotes(emergencyData.notes);
         }
 
-        // Get available ambulances (This is mock data for now)
-        // In a real implementation, we would fetch this from a 'ambulances' table in Supabase
-        const mockAmbulances: Ambulance[] = [
-          {
-            id: '1',
-            name: 'Ambulance A',
-            vehicleNumber: 'ZEP-001',
-            driver: {
-              name: 'John Driver',
-              phone: '+12345678901'
-            },
-            status: 'available'
-          },
-          {
-            id: '2',
-            name: 'Ambulance B',
-            vehicleNumber: 'ZEP-002',
-            driver: {
-              name: 'Sarah Medic',
-              phone: '+12345678902'
-            },
-            status: 'available'
-          },
-          {
-            id: '3',
-            name: 'Ambulance C',
-            vehicleNumber: 'ZEP-003',
-            driver: {
-              name: 'Mike Rescue',
-              phone: '+12345678903'
-            },
-            status: 'available'
-          }
-        ];
-
-        setAvailableAmbulances(mockAmbulances);
+        await fetchAvailableAmbulances();
       } catch (error) {
         console.error('Error fetching emergency details:', error);
         toast({
@@ -159,6 +127,23 @@ const EmergencyDetails = () => {
 
     fetchEmergencyData();
   }, [id, toast]);
+
+  const fetchAvailableAmbulances = async () => {
+    setIsLoadingAmbulances(true);
+    try {
+      const ambulances = await DispatchService.fetchAvailableAmbulances();
+      setAvailableAmbulances(ambulances);
+    } catch (error) {
+      console.error('Error fetching available ambulances:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load available ambulances.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingAmbulances(false);
+    }
+  };
 
   const updateEmergencyStatus = async (status: EmergencyRequest['status'], ambulanceId?: string) => {
     if (!emergency || !id) return;
@@ -214,10 +199,28 @@ const EmergencyDetails = () => {
     
     setIsSubmitting(true);
     try {
-      await updateEmergencyStatus('dispatched', selectedAmbulanceId);
+      await DispatchService.dispatchAmbulance(emergency.id, selectedAmbulanceId);
+      
+      // Update local state
+      setEmergency({
+        ...emergency,
+        status: 'dispatched',
+        ambulanceId: selectedAmbulanceId
+      });
+      
+      toast({
+        title: "Ambulance Dispatched",
+        description: "The ambulance has been successfully dispatched to the emergency location.",
+      });
+      
       setConfirmDialog(false);
     } catch (error) {
       console.error('Error dispatching ambulance:', error);
+      toast({
+        title: "Error",
+        description: "Failed to dispatch ambulance. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -289,10 +292,14 @@ const EmergencyDetails = () => {
   const getStatusBadge = (status: EmergencyRequest['status']) => {
     switch (status) {
       case 'pending':
+      case 'requested':
+      case 'confirming':
         return <Badge className="bg-orange-500 hover:bg-orange-600">Pending</Badge>;
       case 'dispatched':
+      case 'en_route':
         return <Badge className="bg-blue-500 hover:bg-blue-600">Dispatched</Badge>;
       case 'completed':
+      case 'arrived':
         return <Badge className="bg-green-500 hover:bg-green-600">Completed</Badge>;
       case 'cancelled':
         return <Badge className="bg-red-500 hover:bg-red-600">Cancelled</Badge>;
@@ -319,6 +326,8 @@ const EmergencyDetails = () => {
         break;
     }
   };
+
+  const canDispatch = emergency && ['pending', 'requested', 'confirming'].includes(emergency.status);
 
   if (isLoading) {
     return (
@@ -486,15 +495,18 @@ const EmergencyDetails = () => {
               <CardHeader>
                 <CardTitle>Emergency Status</CardTitle>
                 <CardDescription>
-                  {emergency.status === 'pending' && 'This emergency needs an ambulance dispatched.'}
-                  {emergency.status === 'dispatched' && 'An ambulance has been dispatched.'}
-                  {emergency.status === 'completed' && 'This emergency has been resolved.'}
-                  {emergency.status === 'cancelled' && 'This emergency was cancelled.'}
+                  {emergency.status === 'pending' || emergency.status === 'requested' || emergency.status === 'confirming' ? 
+                    'This emergency needs an ambulance dispatched.' :
+                    emergency.status === 'dispatched' || emergency.status === 'en_route' ? 
+                    'An ambulance has been dispatched.' :
+                    emergency.status === 'completed' || emergency.status === 'arrived' ? 
+                    'This emergency has been resolved.' :
+                    'This emergency was cancelled.'}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {emergency.status === 'pending' && (
+                  {(emergency.status === 'pending' || emergency.status === 'requested' || emergency.status === 'confirming') && (
                     <div className="space-y-4">
                       <Alert className="bg-orange-50 text-orange-800 border-orange-200">
                         <AlertCircle className="h-4 w-4" />
@@ -506,31 +518,38 @@ const EmergencyDetails = () => {
                       
                       <div className="space-y-2">
                         <Label htmlFor="ambulance">Select Ambulance</Label>
-                        <Select 
-                          value={selectedAmbulanceId} 
-                          onValueChange={setSelectedAmbulanceId}
-                        >
-                          <SelectTrigger id="ambulance">
-                            <SelectValue placeholder="Select an ambulance" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectGroup>
-                              <SelectLabel>Available Ambulances</SelectLabel>
-                              {availableAmbulances.map((ambulance) => (
-                                <SelectItem key={ambulance.id} value={ambulance.id}>
-                                  {ambulance.name} ({ambulance.vehicleNumber})
-                                </SelectItem>
-                              ))}
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
+                        {isLoadingAmbulances ? (
+                          <div className="flex items-center space-x-2">
+                            <div className="animate-spin w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full"></div>
+                            <p className="text-sm text-gray-500">Loading ambulances...</p>
+                          </div>
+                        ) : (
+                          <Select 
+                            value={selectedAmbulanceId} 
+                            onValueChange={setSelectedAmbulanceId}
+                          >
+                            <SelectTrigger id="ambulance">
+                              <SelectValue placeholder="Select an ambulance" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectGroup>
+                                <SelectLabel>Available Ambulances</SelectLabel>
+                                {availableAmbulances.map((ambulance) => (
+                                  <SelectItem key={ambulance.id} value={ambulance.id}>
+                                    {ambulance.name} ({ambulance.vehicleNumber})
+                                  </SelectItem>
+                                ))}
+                              </SelectGroup>
+                            </SelectContent>
+                          </Select>
+                        )}
                       </div>
                     </div>
                   )}
 
-                  {emergency.status === 'dispatched' && (
+                  {(emergency.status === 'dispatched' || emergency.status === 'en_route') && (
                     <Alert className="bg-blue-50 text-blue-800 border-blue-200">
-                      <Navigation className="h-4 w-4" />
+                      <AmbulanceIcon className="h-4 w-4" />
                       <AlertTitle>Ambulance Dispatched</AlertTitle>
                       <AlertDescription>
                         Ambulance is on the way to the patient's location.
@@ -538,7 +557,7 @@ const EmergencyDetails = () => {
                     </Alert>
                   )}
 
-                  {emergency.status === 'completed' && (
+                  {(emergency.status === 'completed' || emergency.status === 'arrived') && (
                     <Alert className="bg-green-50 text-green-800 border-green-200">
                       <CheckCircle className="h-4 w-4" />
                       <AlertTitle>Emergency Completed</AlertTitle>
@@ -568,7 +587,7 @@ const EmergencyDetails = () => {
                       rows={4}
                       disabled={emergency.status === 'completed' || emergency.status === 'cancelled'}
                     />
-                    {(emergency.status === 'pending' || emergency.status === 'dispatched') && (
+                    {(emergency.status === 'pending' || emergency.status === 'requested' || emergency.status === 'confirming' || emergency.status === 'dispatched' || emergency.status === 'en_route') && (
                       <Button 
                         variant="outline" 
                         size="sm" 
@@ -582,14 +601,14 @@ const EmergencyDetails = () => {
                 </div>
               </CardContent>
               <CardFooter className="flex flex-col space-y-2 border-t pt-6">
-                {emergency.status === 'pending' && (
+                {canDispatch && (
                   <>
                     <Button
                       className="w-full bg-purple-500 hover:bg-purple-600 flex items-center"
                       disabled={!selectedAmbulanceId || isSubmitting}
                       onClick={() => handleConfirmAction('dispatch')}
                     >
-                      <Send className="mr-2 h-4 w-4" />
+                      <AmbulanceIcon className="mr-2 h-4 w-4" />
                       Dispatch Ambulance
                     </Button>
                     <Button
@@ -602,7 +621,7 @@ const EmergencyDetails = () => {
                   </>
                 )}
 
-                {emergency.status === 'dispatched' && (
+                {(emergency.status === 'dispatched' || emergency.status === 'en_route') && (
                   <Button
                     className="w-full bg-green-500 hover:bg-green-600"
                     onClick={() => handleConfirmAction('complete')}
@@ -615,7 +634,7 @@ const EmergencyDetails = () => {
             </Card>
 
             {/* Contact Information */}
-            {emergency.status === 'dispatched' && emergency.ambulanceId && (
+            {(emergency.status === 'dispatched' || emergency.status === 'en_route') && emergency.ambulanceId && (
               <Card>
                 <CardHeader>
                   <CardTitle>Ambulance Details</CardTitle>
