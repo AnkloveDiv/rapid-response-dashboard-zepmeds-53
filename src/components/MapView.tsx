@@ -1,53 +1,6 @@
 
-import React, { useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+import React from 'react';
 import { EmergencyRequest, Ambulance } from '@/types';
-import AiService from '@/services/AiService';
-
-// Fix for default marker icons in Leaflet with webpack/vite
-import icon from 'leaflet/dist/images/marker-icon.png';
-import iconShadow from 'leaflet/dist/images/marker-shadow.png';
-
-// Fix Leaflet default icon issue
-const defaultIcon = new L.Icon({
-  iconUrl: icon,
-  shadowUrl: iconShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-});
-
-// Set default icon for all markers
-L.Marker.prototype.options.icon = defaultIcon;
-
-// Custom ambulance icon
-const ambulanceIcon = new L.Icon({
-  iconUrl: 'https://cdn-icons-png.flaticon.com/512/2180/2180437.png',
-  iconSize: [32, 32],
-  iconAnchor: [16, 16],
-  popupAnchor: [0, -16]
-});
-
-// Custom emergency icon
-const emergencyIcon = new L.Icon({
-  iconUrl: 'https://cdn-icons-png.flaticon.com/512/4378/4378050.png',
-  iconSize: [32, 32],
-  iconAnchor: [16, 16],
-  popupAnchor: [0, -16]
-});
-
-// Component to update map view when props change
-function MapViewUpdater({ latitude, longitude, zoom }: { latitude: number, longitude: number, zoom: number }) {
-  const map = useMap();
-  
-  useEffect(() => {
-    map.setView([latitude, longitude], zoom);
-  }, [map, latitude, longitude, zoom]);
-  
-  return null;
-}
 
 interface MapViewProps {
   latitude: number;
@@ -68,79 +21,46 @@ const MapView: React.FC<MapViewProps> = ({
   selectedEmergencyId = null,
   selectedAmbulanceId = null
 }) => {
-  // GraphHopper API key for routing if needed
-  const graphhopperApiKey = AiService.getGraphhopperApiKey();
-  const defaultPosition: [number, number] = [latitude, longitude];
-
   return (
     <div style={{ height: '100%', width: '100%', position: 'relative' }}>
-      <MapContainer 
-        center={defaultPosition}
-        zoom={zoom}
-        style={{ height: '100%', width: '100%', borderRadius: '0.5rem' }}
+      <div 
+        style={{ 
+          height: '100%', 
+          width: '100%', 
+          borderRadius: '0.5rem',
+          backgroundColor: '#f0f0f0',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexDirection: 'column',
+          padding: '1rem',
+          textAlign: 'center'
+        }}
       >
-        <MapViewUpdater latitude={latitude} longitude={longitude} zoom={zoom} />
-        
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        />
-        
-        {emergencyRequests.map(request => {
-          const isSelected = selectedEmergencyId === request.id;
-          const requestPosition: [number, number] = [
-            request.location.coordinates.latitude, 
-            request.location.coordinates.longitude
-          ];
-          
-          return (
-            <Marker 
-              key={request.id}
-              position={requestPosition}
-              icon={emergencyIcon}
-            >
-              <Popup>
-                <div>
-                  <h3 className="font-bold">{request.name}</h3>
-                  <p className="text-sm">{request.location.address}</p>
-                  <p className="text-xs mt-1">Status: {request.status}</p>
-                  {request.notes && <p className="text-xs mt-1">Notes: {request.notes}</p>}
-                </div>
-              </Popup>
-            </Marker>
-          );
-        })}
-        
-        {ambulances.filter(amb => amb.lastLocation).map(ambulance => {
-          const isSelected = selectedAmbulanceId === ambulance.id;
-          const ambulancePosition: [number, number] = [
-            ambulance.lastLocation!.latitude, 
-            ambulance.lastLocation!.longitude
-          ];
-          
-          return (
-            <Marker 
-              key={ambulance.id}
-              position={ambulancePosition}
-              icon={ambulanceIcon}
-            >
-              <Popup>
-                <div>
-                  <h3 className="font-bold">{ambulance.name}</h3>
-                  <p className="text-sm">{ambulance.vehicleNumber}</p>
-                  <p className="text-xs mt-1">Driver: {ambulance.driver.name}</p>
-                  <p className="text-xs">Status: {ambulance.status}</p>
-                  {ambulance.lastLocation && (
-                    <p className="text-xs mt-1">
-                      Last updated: {new Date(ambulance.lastLocation.timestamp).toLocaleTimeString()}
-                    </p>
-                  )}
-                </div>
-              </Popup>
-            </Marker>
-          );
-        })}
-      </MapContainer>
+        <div className="bg-purple-100 text-purple-800 rounded-full p-3 mb-4">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z" />
+            <circle cx="12" cy="10" r="3" />
+          </svg>
+        </div>
+        <h3 className="text-lg font-medium mb-2">Map View Placeholder</h3>
+        <p className="text-sm text-gray-500 mb-4">
+          Location: {latitude.toFixed(4)}, {longitude.toFixed(4)}
+        </p>
+        <div className="text-xs text-gray-400">
+          {emergencyRequests.length} emergency requests and {ambulances.length} ambulances in this area
+        </div>
+      </div>
     </div>
   );
 };
