@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { AlertTriangle, Ambulance as AmbulanceIcon, CheckCircle2, Navigation, BellRing } from 'lucide-react';
 import MainLayout from '@/components/layout/MainLayout';
@@ -19,7 +18,6 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
-  // Function to fetch data
   const fetchData = async () => {
     try {
       console.log("Fetching dashboard data...");
@@ -34,12 +32,15 @@ const Dashboard = () => {
       console.log("Received emergency data:", requestsResponse.data);
       console.log("Received ambulance data:", ambulancesResponse.data);
 
-      // Transform emergency requests data
       const transformedRequests: EmergencyRequest[] = requestsResponse.data.map(item => {
-        // Handle the location data properly, accounting for string format
         const locationData = typeof item.location === 'string' 
           ? JSON.parse(item.location) 
           : item.location;
+          
+        const coordinates = {
+          latitude: locationData.latitude || locationData.lat || (locationData.coordinates ? locationData.coordinates.latitude : 0),
+          longitude: locationData.longitude || locationData.lng || (locationData.coordinates ? locationData.coordinates.longitude : 0)
+        };
           
         return {
           id: item.id,
@@ -48,10 +49,7 @@ const Dashboard = () => {
           timestamp: item.timestamp,
           location: {
             address: locationData.address || '',
-            coordinates: {
-              latitude: locationData.coordinates?.latitude || 0,
-              longitude: locationData.coordinates?.longitude || 0
-            }
+            coordinates: coordinates
           },
           status: item.status as EmergencyRequest['status'],
           notes: item.notes || undefined,
@@ -59,7 +57,6 @@ const Dashboard = () => {
         };
       });
 
-      // Transform ambulances data
       const transformedAmbulances: Ambulance[] = ambulancesResponse.data.map(item => ({
         id: item.id,
         name: item.name,
@@ -88,7 +85,6 @@ const Dashboard = () => {
   useEffect(() => {
     fetchData();
 
-    // Set up real-time subscription for emergency requests
     const emergencyChannel = supabase
       .channel('emergency-updates')
       .on('postgres_changes', 
@@ -100,17 +96,14 @@ const Dashboard = () => {
         (payload) => {
           console.log('New emergency request received:', payload);
           
-          // Play alarm sound
           AudioService.playEmergencyAlert(5);
           
-          // Show emergency toast notification
           toast({
             variant: "emergency",
             title: "Emergency Request Received!",
             description: "A new emergency request requires immediate attention.",
           });
           
-          // Update data
           fetchData();
         }
       )
@@ -127,7 +120,6 @@ const Dashboard = () => {
       )
       .subscribe();
 
-    // Set up real-time subscription for ambulances
     const ambulanceChannel = supabase
       .channel('ambulance-updates')
       .on('postgres_changes', 
@@ -149,12 +141,12 @@ const Dashboard = () => {
     };
   }, [toast]);
 
-  // Filter requests by status
-  const pendingRequests = emergencyRequests.filter(req => req.status === 'pending');
+  const pendingRequests = emergencyRequests.filter(req => 
+    req.status === 'pending' || req.status === 'requested' || req.status === 'confirming'
+  );
   const dispatchedRequests = emergencyRequests.filter(req => req.status === 'dispatched');
   const completedRequests = emergencyRequests.filter(req => req.status === 'completed');
   
-  // Get active emergencies for display
   const activeEmergencies = [...pendingRequests, ...dispatchedRequests].slice(0, 5);
 
   if (isLoading) {
@@ -178,7 +170,6 @@ const Dashboard = () => {
           <p className="text-gray-500">Emergency service requests and ambulance status</p>
         </div>
 
-        {/* Stats Overview */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard 
             title="Pending Requests"
@@ -221,7 +212,6 @@ const Dashboard = () => {
           />
         </div>
 
-        {/* Emergency Requests and Ambulance Status */}
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           <EmergencyRequestsList 
             requests={activeEmergencies}
@@ -232,7 +222,6 @@ const Dashboard = () => {
           <AmbulanceStatus ambulances={ambulances} />
         </div>
 
-        {/* Summary Stats */}
         <SummaryStats 
           totalRequests={emergencyRequests.length}
           totalAmbulances={ambulances.length}

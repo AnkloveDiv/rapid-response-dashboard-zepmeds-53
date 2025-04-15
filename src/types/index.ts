@@ -12,7 +12,7 @@ export interface EmergencyRequest {
       longitude: number;
     };
   };
-  status: 'pending' | 'dispatched' | 'completed' | 'cancelled';
+  status: 'pending' | 'dispatched' | 'completed' | 'cancelled' | 'requested' | 'confirming';
   notes?: string;
   ambulanceId?: string;
 }

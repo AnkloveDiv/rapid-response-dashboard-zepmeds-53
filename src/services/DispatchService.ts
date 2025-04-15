@@ -52,22 +52,7 @@ class DispatchService {
     try {
       console.log("Dispatching ambulance:", ambulanceId, "for emergency:", emergencyId);
       
-      // Update the emergency request
-      const { error: emergencyError } = await supabase
-        .from('emergency_requests')
-        .update({
-          status: 'dispatched',
-          ambulance_id: ambulanceId,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', emergencyId);
-        
-      if (emergencyError) {
-        console.error("Error updating emergency request:", emergencyError);
-        throw emergencyError;
-      }
-      
-      // Update the ambulance status
+      // First, update the ambulance status to dispatched
       const { error: ambulanceError } = await supabase
         .from('ambulances')
         .update({
@@ -79,6 +64,31 @@ class DispatchService {
       if (ambulanceError) {
         console.error("Error updating ambulance:", ambulanceError);
         throw ambulanceError;
+      }
+      
+      // Then, update the emergency request
+      const { error: emergencyError } = await supabase
+        .from('emergency_requests')
+        .update({
+          status: 'dispatched',
+          ambulance_id: ambulanceId,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', emergencyId);
+        
+      if (emergencyError) {
+        console.error("Error updating emergency request:", emergencyError);
+        
+        // If there was an error updating the emergency, we should revert the ambulance status
+        await supabase
+          .from('ambulances')
+          .update({
+            status: 'available',
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', ambulanceId);
+          
+        throw emergencyError;
       }
       
       return true;

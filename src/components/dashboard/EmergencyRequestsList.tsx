@@ -18,6 +18,8 @@ const EmergencyRequestsList = ({ requests, title, description }: EmergencyReques
   const getStatusColor = (status: EmergencyRequest['status']) => {
     switch (status) {
       case 'pending':
+      case 'requested':
+      case 'confirming':
         return 'bg-orange-500';
       case 'dispatched':
         return 'bg-blue-500';
@@ -33,6 +35,8 @@ const EmergencyRequestsList = ({ requests, title, description }: EmergencyReques
   const getStatusBadge = (status: EmergencyRequest['status']) => {
     switch (status) {
       case 'pending':
+      case 'requested':
+      case 'confirming':
         return <Badge className="bg-orange-500 hover:bg-orange-600">Pending</Badge>;
       case 'dispatched':
         return <Badge className="bg-blue-500 hover:bg-blue-600">Dispatched</Badge>;

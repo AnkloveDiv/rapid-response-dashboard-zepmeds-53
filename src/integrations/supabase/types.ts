@@ -179,6 +179,57 @@ export type Database = {
           },
         ]
       }
+      emergency_assignments: {
+        Row: {
+          assigned_at: string | null
+          created_at: string | null
+          emergency_request_id: string | null
+          eta_minutes: number | null
+          id: string
+          notes: string | null
+          responder_id: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_at?: string | null
+          created_at?: string | null
+          emergency_request_id?: string | null
+          eta_minutes?: number | null
+          id?: string
+          notes?: string | null
+          responder_id?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_at?: string | null
+          created_at?: string | null
+          emergency_request_id?: string | null
+          eta_minutes?: number | null
+          id?: string
+          notes?: string | null
+          responder_id?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emergency_assignments_emergency_request_id_fkey"
+            columns: ["emergency_request_id"]
+            isOneToOne: false
+            referencedRelation: "emergency_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "emergency_assignments_responder_id_fkey"
+            columns: ["responder_id"]
+            isOneToOne: false
+            referencedRelation: "emergency_responders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       emergency_requests: {
         Row: {
           ambulance_id: string | null
@@ -228,6 +279,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      emergency_responders: {
+        Row: {
+          created_at: string | null
+          id: string
+          location_lat: number | null
+          location_lng: number | null
+          name: string
+          phone_number: string
+          status: string
+          updated_at: string | null
+          vehicle_number: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          location_lat?: number | null
+          location_lng?: number | null
+          name: string
+          phone_number: string
+          status?: string
+          updated_at?: string | null
+          vehicle_number: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          location_lat?: number | null
+          location_lng?: number | null
+          name?: string
+          phone_number?: string
+          status?: string
+          updated_at?: string | null
+          vehicle_number?: string
+        }
+        Relationships: []
       }
       order_items: {
         Row: {
@@ -642,6 +729,45 @@ export type Database = {
           rider_code?: string
           status?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      user_health_profiles: {
+        Row: {
+          allergies: string[] | null
+          blood_type: string | null
+          created_at: string | null
+          emergency_contacts: Json | null
+          id: string
+          medical_conditions: string[] | null
+          medications: string[] | null
+          notes: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          allergies?: string[] | null
+          blood_type?: string | null
+          created_at?: string | null
+          emergency_contacts?: Json | null
+          id?: string
+          medical_conditions?: string[] | null
+          medications?: string[] | null
+          notes?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          allergies?: string[] | null
+          blood_type?: string | null
+          created_at?: string | null
+          emergency_contacts?: Json | null
+          id?: string
+          medical_conditions?: string[] | null
+          medications?: string[] | null
+          notes?: string | null
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }

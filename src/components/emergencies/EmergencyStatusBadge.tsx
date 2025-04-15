@@ -10,6 +10,8 @@ interface EmergencyStatusBadgeProps {
 const EmergencyStatusBadge: React.FC<EmergencyStatusBadgeProps> = ({ status }) => {
   switch (status) {
     case 'pending':
+    case 'requested':
+    case 'confirming':
       return <Badge className="bg-orange-500 hover:bg-orange-600">Pending</Badge>;
     case 'dispatched':
       return <Badge className="bg-blue-500 hover:bg-blue-600">Dispatched</Badge>;
