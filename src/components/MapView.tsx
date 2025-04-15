@@ -1,6 +1,6 @@
 
-import React, { useRef, useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import React from 'react';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { EmergencyRequest, Ambulance } from '@/types';
@@ -38,9 +38,15 @@ const emergencyIcon = L.icon({
 
 // Component to update map center and zoom when props change
 const MapUpdater = ({ center, zoom }: { center: [number, number], zoom: number }) => {
-  const map = useMap();
-  useEffect(() => {
+  const map = L.map('map-container', { center, zoom });
+  
+  React.useEffect(() => {
     map.setView(center, zoom);
+    
+    // Cleanup function
+    return () => {
+      map.remove();
+    };
   }, [center, zoom, map]);
   
   return null;
@@ -67,79 +73,79 @@ const MapView: React.FC<MapViewProps> = ({
 }) => {
   // GraphHopper API key for routing if needed
   const graphhopperApiKey = AiService.getGraphhopperApiKey();
+  const center: L.LatLngExpression = [latitude, longitude];
   
   return (
-    <MapContainer 
-      center={[latitude, longitude] as L.LatLngExpression} 
-      zoom={zoom} 
-      style={{ height: '100%', width: '100%', borderRadius: '0.5rem' }}
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      
-      <MapUpdater center={[latitude, longitude]} zoom={zoom} />
-      
-      {/* Render Emergency Markers */}
-      {emergencyRequests.map(request => {
-        const isSelected = selectedEmergencyId === request.id;
-        const position: L.LatLngExpression = [
-          request.location.coordinates.latitude, 
-          request.location.coordinates.longitude
-        ];
+    <div style={{ height: '100%', width: '100%', position: 'relative' }}>
+      <MapContainer 
+        center={center}
+        zoom={zoom} 
+        style={{ height: '100%', width: '100%', borderRadius: '0.5rem' }}
+        id="map-container"
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
         
-        return (
-          <Marker 
-            key={request.id}
-            position={position}
-            icon={emergencyIcon}
-            zIndexOffset={isSelected ? 1000 : 0}
-          >
-            <Popup>
-              <div>
-                <h3 className="font-bold">{request.name}</h3>
-                <p className="text-sm">{request.location.address}</p>
-                <p className="text-xs mt-1">Status: {request.status}</p>
-                {request.notes && <p className="text-xs mt-1">Notes: {request.notes}</p>}
-              </div>
-            </Popup>
-          </Marker>
-        );
-      })}
-      
-      {/* Render Ambulance Markers */}
-      {ambulances.filter(amb => amb.lastLocation).map(ambulance => {
-        const isSelected = selectedAmbulanceId === ambulance.id;
-        const position: L.LatLngExpression = [
-          ambulance.lastLocation!.latitude, 
-          ambulance.lastLocation!.longitude
-        ];
+        {/* Render Emergency Markers */}
+        {emergencyRequests.map(request => {
+          const isSelected = selectedEmergencyId === request.id;
+          const position: L.LatLngExpression = [
+            request.location.coordinates.latitude, 
+            request.location.coordinates.longitude
+          ];
+          
+          return (
+            <Marker 
+              key={request.id}
+              position={position}
+              icon={emergencyIcon}
+            >
+              <Popup>
+                <div>
+                  <h3 className="font-bold">{request.name}</h3>
+                  <p className="text-sm">{request.location.address}</p>
+                  <p className="text-xs mt-1">Status: {request.status}</p>
+                  {request.notes && <p className="text-xs mt-1">Notes: {request.notes}</p>}
+                </div>
+              </Popup>
+            </Marker>
+          );
+        })}
         
-        return (
-          <Marker 
-            key={ambulance.id}
-            position={position}
-            icon={ambulanceIcon}
-            zIndexOffset={isSelected ? 1000 : 0}
-          >
-            <Popup>
-              <div>
-                <h3 className="font-bold">{ambulance.name}</h3>
-                <p className="text-sm">{ambulance.vehicleNumber}</p>
-                <p className="text-xs mt-1">Driver: {ambulance.driver.name}</p>
-                <p className="text-xs">Status: {ambulance.status}</p>
-                {ambulance.lastLocation && (
-                  <p className="text-xs mt-1">
-                    Last updated: {new Date(ambulance.lastLocation.timestamp).toLocaleTimeString()}
-                  </p>
-                )}
-              </div>
-            </Popup>
-          </Marker>
-        );
-      })}
-    </MapContainer>
+        {/* Render Ambulance Markers */}
+        {ambulances.filter(amb => amb.lastLocation).map(ambulance => {
+          const isSelected = selectedAmbulanceId === ambulance.id;
+          const position: L.LatLngExpression = [
+            ambulance.lastLocation!.latitude, 
+            ambulance.lastLocation!.longitude
+          ];
+          
+          return (
+            <Marker 
+              key={ambulance.id}
+              position={position}
+              icon={ambulanceIcon}
+            >
+              <Popup>
+                <div>
+                  <h3 className="font-bold">{ambulance.name}</h3>
+                  <p className="text-sm">{ambulance.vehicleNumber}</p>
+                  <p className="text-xs mt-1">Driver: {ambulance.driver.name}</p>
+                  <p className="text-xs">Status: {ambulance.status}</p>
+                  {ambulance.lastLocation && (
+                    <p className="text-xs mt-1">
+                      Last updated: {new Date(ambulance.lastLocation.timestamp).toLocaleTimeString()}
+                    </p>
+                  )}
+                </div>
+              </Popup>
+            </Marker>
+          );
+        })}
+      </MapContainer>
+    </div>
   );
 };
 
