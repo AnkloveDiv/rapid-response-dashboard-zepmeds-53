@@ -9,6 +9,8 @@ class AudioService {
     if (typeof window !== 'undefined') {
       this.alertSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
       this.alertSound.volume = 0.7;
+      this.alertSound.loop = true; // Enable looping so we can control duration
+      
       // Add event listener to track when sound has ended
       this.alertSound.addEventListener('ended', () => {
         this.isPlaying = false;
@@ -51,6 +53,14 @@ class AudioService {
   
   public isAlertPlaying(): boolean {
     return this.isPlaying;
+  }
+  
+  public stopAlert(): void {
+    if (this.alertSound && this.isPlaying) {
+      this.alertSound.pause();
+      this.alertSound.currentTime = 0;
+      this.isPlaying = false;
+    }
   }
 }
 

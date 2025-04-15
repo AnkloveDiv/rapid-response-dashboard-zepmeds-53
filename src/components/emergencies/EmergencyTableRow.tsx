@@ -62,6 +62,8 @@ const EmergencyTableRow = ({ request }: EmergencyTableRowProps) => {
         throw error;
       }
       
+      console.log("Available ambulances:", data);
+      
       const transformedData: Ambulance[] = data.map(item => ({
         id: item.id,
         name: item.name,
@@ -102,8 +104,9 @@ const EmergencyTableRow = ({ request }: EmergencyTableRowProps) => {
     setIsLoading(true);
     
     try {
-      // Start a transaction to update both the emergency request and ambulance
-      // 1. Update the emergency request
+      console.log("Dispatching ambulance:", selectedAmbulanceId, "for emergency:", request.id);
+      
+      // Start with updating the emergency request
       const { error: emergencyError } = await supabase
         .from('emergency_requests')
         .update({
@@ -114,10 +117,11 @@ const EmergencyTableRow = ({ request }: EmergencyTableRowProps) => {
         .eq('id', request.id);
         
       if (emergencyError) {
+        console.error("Error updating emergency request:", emergencyError);
         throw emergencyError;
       }
       
-      // 2. Update the ambulance status
+      // Then update the ambulance status
       const { error: ambulanceError } = await supabase
         .from('ambulances')
         .update({
@@ -127,6 +131,7 @@ const EmergencyTableRow = ({ request }: EmergencyTableRowProps) => {
         .eq('id', selectedAmbulanceId);
         
       if (ambulanceError) {
+        console.error("Error updating ambulance:", ambulanceError);
         throw ambulanceError;
       }
       

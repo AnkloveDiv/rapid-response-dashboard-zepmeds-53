@@ -1,11 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
-import { AlertTriangle, Ambulance as AmbulanceIcon, CheckCircle2, Navigation } from 'lucide-react';
+import { AlertTriangle, Ambulance as AmbulanceIcon, CheckCircle2, Navigation, BellRing } from 'lucide-react';
 import MainLayout from '@/components/layout/MainLayout';
 import { supabase } from '@/integrations/supabase/client';
 import { EmergencyRequest, Ambulance } from '@/types';
+import { useToast } from "@/hooks/use-toast";
+import AudioService from '@/services/AudioService';
 
-// Import new components
+// Import components
 import StatCard from '@/components/dashboard/StatCard';
 import EmergencyRequestsList from '@/components/dashboard/EmergencyRequestsList';
 import AmbulanceStatus from '@/components/dashboard/AmbulanceStatus';
@@ -15,70 +17,137 @@ const Dashboard = () => {
   const [emergencyRequests, setEmergencyRequests] = useState<EmergencyRequest[]>([]);
   const [ambulances, setAmbulances] = useState<Ambulance[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [requestsResponse, ambulancesResponse] = await Promise.all([
-          supabase.from('emergency_requests').select('*').order('timestamp', { ascending: false }),
-          supabase.from('ambulances').select('*')
-        ]);
+  // Function to fetch data
+  const fetchData = async () => {
+    try {
+      console.log("Fetching dashboard data...");
+      const [requestsResponse, ambulancesResponse] = await Promise.all([
+        supabase.from('emergency_requests').select('*').order('timestamp', { ascending: false }),
+        supabase.from('ambulances').select('*')
+      ]);
 
-        if (requestsResponse.error) throw requestsResponse.error;
-        if (ambulancesResponse.error) throw ambulancesResponse.error;
+      if (requestsResponse.error) throw requestsResponse.error;
+      if (ambulancesResponse.error) throw ambulancesResponse.error;
 
-        // Transform emergency requests data
-        const transformedRequests: EmergencyRequest[] = requestsResponse.data.map(item => {
-          const locationData = typeof item.location === 'string' 
-            ? JSON.parse(item.location) 
-            : item.location;
-            
-          return {
-            id: item.id,
-            name: item.name,
-            phone: item.phone,
-            timestamp: item.timestamp,
-            location: {
-              address: locationData.address || '',
-              coordinates: {
-                latitude: locationData.coordinates?.latitude || 0,
-                longitude: locationData.coordinates?.longitude || 0
-              }
-            },
-            status: item.status as EmergencyRequest['status'],
-            notes: item.notes || undefined,
-            ambulanceId: item.ambulance_id || undefined
-          };
-        });
+      console.log("Received emergency data:", requestsResponse.data);
+      console.log("Received ambulance data:", ambulancesResponse.data);
 
-        // Transform ambulances data
-        const transformedAmbulances: Ambulance[] = ambulancesResponse.data.map(item => ({
+      // Transform emergency requests data
+      const transformedRequests: EmergencyRequest[] = requestsResponse.data.map(item => {
+        // Handle the location data properly, accounting for string format
+        const locationData = typeof item.location === 'string' 
+          ? JSON.parse(item.location) 
+          : item.location;
+          
+        return {
           id: item.id,
           name: item.name,
-          vehicleNumber: item.vehicle_number,
-          driver: {
-            name: item.driver_name,
-            phone: item.driver_phone
+          phone: item.phone,
+          timestamp: item.timestamp,
+          location: {
+            address: locationData.address || '',
+            coordinates: {
+              latitude: locationData.coordinates?.latitude || 0,
+              longitude: locationData.coordinates?.longitude || 0
+            }
           },
-          status: item.status as Ambulance['status'],
-          lastLocation: item.last_latitude && item.last_longitude ? {
-            latitude: Number(item.last_latitude),
-            longitude: Number(item.last_longitude),
-            timestamp: item.last_updated || item.updated_at || ''
-          } : undefined
-        }));
+          status: item.status as EmergencyRequest['status'],
+          notes: item.notes || undefined,
+          ambulanceId: item.ambulance_id || undefined
+        };
+      });
 
-        setEmergencyRequests(transformedRequests);
-        setAmbulances(transformedAmbulances);
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+      // Transform ambulances data
+      const transformedAmbulances: Ambulance[] = ambulancesResponse.data.map(item => ({
+        id: item.id,
+        name: item.name,
+        vehicleNumber: item.vehicle_number,
+        driver: {
+          name: item.driver_name,
+          phone: item.driver_phone
+        },
+        status: item.status as Ambulance['status'],
+        lastLocation: item.last_latitude && item.last_longitude ? {
+          latitude: Number(item.last_latitude),
+          longitude: Number(item.last_longitude),
+          timestamp: item.last_updated || item.updated_at || ''
+        } : undefined
+      }));
 
+      setEmergencyRequests(transformedRequests);
+      setAmbulances(transformedAmbulances);
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchData();
-  }, []);
+
+    // Set up real-time subscription for emergency requests
+    const emergencyChannel = supabase
+      .channel('emergency-updates')
+      .on('postgres_changes', 
+        { 
+          event: 'INSERT', 
+          schema: 'public', 
+          table: 'emergency_requests' 
+        }, 
+        (payload) => {
+          console.log('New emergency request received:', payload);
+          
+          // Play alarm sound
+          AudioService.playEmergencyAlert(5);
+          
+          // Show emergency toast notification
+          toast({
+            variant: "emergency",
+            title: "Emergency Request Received!",
+            description: "A new emergency request requires immediate attention.",
+          });
+          
+          // Update data
+          fetchData();
+        }
+      )
+      .on('postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'emergency_requests'
+        },
+        (payload) => {
+          console.log('Emergency request updated:', payload);
+          fetchData();
+        }
+      )
+      .subscribe();
+
+    // Set up real-time subscription for ambulances
+    const ambulanceChannel = supabase
+      .channel('ambulance-updates')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'ambulances' 
+        }, 
+        (payload) => {
+          console.log('Ambulance update received:', payload);
+          fetchData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(emergencyChannel);
+      supabase.removeChannel(ambulanceChannel);
+    };
+  }, [toast]);
 
   // Filter requests by status
   const pendingRequests = emergencyRequests.filter(req => req.status === 'pending');
