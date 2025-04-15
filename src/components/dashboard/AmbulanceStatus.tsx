@@ -64,6 +64,24 @@ const AmbulanceStatus = ({ ambulances }: AmbulanceStatusProps) => {
               )}
             </div>
           </div>
+          
+          <div className="pt-4 border-t border-gray-100">
+            <h4 className="text-sm font-medium mb-3">Dispatched Ambulances</h4>
+            <div className="space-y-3">
+              {dispatchedAmbulances.map((ambulance) => (
+                <div key={ambulance.id} className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                    <span className="text-sm">{ambulance.name}</span>
+                  </div>
+                  <span className="text-xs text-gray-500">{ambulance.vehicleNumber}</span>
+                </div>
+              ))}
+              {dispatchedAmbulances.length === 0 && (
+                <p className="text-sm text-gray-500">No ambulances dispatched</p>
+              )}
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>

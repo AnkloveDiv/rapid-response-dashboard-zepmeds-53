@@ -671,6 +671,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      assign_ambulance_to_emergency: {
+        Args: { emergency_id: string; ambulance_id: string }
+        Returns: boolean
+      }
+      create_emergency_request: {
+        Args: {
+          name: string
+          phone: string
+          location: Json
+          notes?: string
+          status?: string
+        }
+        Returns: string
+      }
       get_realtime_tables: {
         Args: Record<PropertyKey, never>
         Returns: string[]
@@ -681,6 +695,10 @@ export type Database = {
       }
       is_rider_online: {
         Args: { last_active: string }
+        Returns: boolean
+      }
+      update_ambulance_status: {
+        Args: { a_id: string; new_status: string }
         Returns: boolean
       }
     }
