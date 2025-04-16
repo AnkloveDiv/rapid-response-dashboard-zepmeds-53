@@ -286,6 +286,87 @@ export type Database = {
         }
         Relationships: []
       }
+      patients: {
+        Row: {
+          address: string | null
+          created_at: string
+          emergency_contact: string | null
+          id: string
+          medical_notes: string | null
+          name: string
+          phone: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          emergency_contact?: string | null
+          id?: string
+          medical_notes?: string | null
+          name: string
+          phone: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          emergency_contact?: string | null
+          id?: string
+          medical_notes?: string | null
+          name?: string
+          phone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      reports: {
+        Row: {
+          ambulance_id: string | null
+          created_at: string
+          description: string | null
+          emergency_id: string | null
+          id: string
+          report_date: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          ambulance_id?: string | null
+          created_at?: string
+          description?: string | null
+          emergency_id?: string | null
+          id?: string
+          report_date?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          ambulance_id?: string | null
+          created_at?: string
+          description?: string | null
+          emergency_id?: string | null
+          id?: string
+          report_date?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_ambulance_id_fkey"
+            columns: ["ambulance_id"]
+            isOneToOne: false
+            referencedRelation: "ambulances"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_emergency_id_fkey"
+            columns: ["emergency_id"]
+            isOneToOne: false
+            referencedRelation: "emergency_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       riders: {
         Row: {
           created_at: string
