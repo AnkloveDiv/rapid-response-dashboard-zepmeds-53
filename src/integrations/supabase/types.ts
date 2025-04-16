@@ -54,6 +54,48 @@ export type Database = {
         }
         Relationships: []
       }
+      ambulances: {
+        Row: {
+          created_at: string
+          driver_name: string
+          driver_phone: string
+          id: string
+          last_latitude: number | null
+          last_longitude: number | null
+          last_updated: string | null
+          name: string
+          status: string
+          updated_at: string
+          vehicle_number: string
+        }
+        Insert: {
+          created_at?: string
+          driver_name: string
+          driver_phone: string
+          id?: string
+          last_latitude?: number | null
+          last_longitude?: number | null
+          last_updated?: string | null
+          name: string
+          status?: string
+          updated_at?: string
+          vehicle_number: string
+        }
+        Update: {
+          created_at?: string
+          driver_name?: string
+          driver_phone?: string
+          id?: string
+          last_latitude?: number | null
+          last_longitude?: number | null
+          last_updated?: string | null
+          name?: string
+          status?: string
+          updated_at?: string
+          vehicle_number?: string
+        }
+        Relationships: []
+      }
       customers: {
         Row: {
           address: string | null
