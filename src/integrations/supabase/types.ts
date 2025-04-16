@@ -9,417 +9,148 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      addresses: {
+      admin_dashboard_orders: {
         Row: {
-          address_line: string
-          city: string | null
-          created_at: string | null
-          customer_id: string
+          created_at: string
+          customer_address: string | null
+          customer_name: string | null
+          customer_phone: string | null
           id: string
-          is_default: boolean | null
-          latitude: number | null
-          longitude: number | null
-          state: string | null
-          type: string
-          updated_at: string | null
-          zip_code: string | null
-        }
-        Insert: {
-          address_line: string
-          city?: string | null
-          created_at?: string | null
-          customer_id: string
-          id?: string
-          is_default?: boolean | null
-          latitude?: number | null
-          longitude?: number | null
-          state?: string | null
-          type: string
-          updated_at?: string | null
-          zip_code?: string | null
-        }
-        Update: {
-          address_line?: string
-          city?: string | null
-          created_at?: string | null
-          customer_id?: string
-          id?: string
-          is_default?: boolean | null
-          latitude?: number | null
-          longitude?: number | null
-          state?: string | null
-          type?: string
-          updated_at?: string | null
-          zip_code?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "addresses_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "customers"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      ambulances: {
-        Row: {
-          created_at: string | null
-          driver_name: string
-          driver_phone: string
-          id: string
-          last_latitude: number | null
-          last_longitude: number | null
-          last_updated: string | null
-          name: string
+          items: Json | null
+          order_id: string
+          order_number: string | null
+          payment_method: string | null
           status: string
-          updated_at: string | null
-          vehicle_number: string
+          total_amount: number | null
+          updated_at: string
         }
         Insert: {
-          created_at?: string | null
-          driver_name: string
-          driver_phone: string
+          created_at?: string
+          customer_address?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
           id?: string
-          last_latitude?: number | null
-          last_longitude?: number | null
-          last_updated?: string | null
-          name: string
+          items?: Json | null
+          order_id: string
+          order_number?: string | null
+          payment_method?: string | null
           status?: string
-          updated_at?: string | null
-          vehicle_number: string
+          total_amount?: number | null
+          updated_at?: string
         }
         Update: {
-          created_at?: string | null
-          driver_name?: string
-          driver_phone?: string
+          created_at?: string
+          customer_address?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
           id?: string
-          last_latitude?: number | null
-          last_longitude?: number | null
-          last_updated?: string | null
-          name?: string
+          items?: Json | null
+          order_id?: string
+          order_number?: string | null
+          payment_method?: string | null
           status?: string
-          updated_at?: string | null
-          vehicle_number?: string
+          total_amount?: number | null
+          updated_at?: string
         }
         Relationships: []
       }
       customers: {
         Row: {
-          created_at: string | null
-          default_address: string | null
+          address: string | null
+          created_at: string
           email: string | null
           id: string
-          name: string
-          phone: string | null
-          updated_at: string | null
-          user_id: string | null
+          name: string | null
+          phone: string
+          updated_at: string
         }
         Insert: {
-          created_at?: string | null
-          default_address?: string | null
+          address?: string | null
+          created_at?: string
           email?: string | null
           id?: string
-          name: string
-          phone?: string | null
-          updated_at?: string | null
-          user_id?: string | null
+          name?: string | null
+          phone: string
+          updated_at?: string
         }
         Update: {
-          created_at?: string | null
-          default_address?: string | null
+          address?: string | null
+          created_at?: string
           email?: string | null
           id?: string
-          name?: string
-          phone?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      earnings: {
-        Row: {
-          amount: number
-          created_at: string
-          date: string
-          id: string
-          order_id: string
-          rider_id: string
-        }
-        Insert: {
-          amount: number
-          created_at?: string
-          date: string
-          id?: string
-          order_id: string
-          rider_id: string
-        }
-        Update: {
-          amount?: number
-          created_at?: string
-          date?: string
-          id?: string
-          order_id?: string
-          rider_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "earnings_order_id_fkey"
-            columns: ["order_id"]
-            isOneToOne: false
-            referencedRelation: "orders"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "earnings_rider_id_fkey"
-            columns: ["rider_id"]
-            isOneToOne: false
-            referencedRelation: "riders"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      emergency_assignments: {
-        Row: {
-          assigned_at: string | null
-          created_at: string | null
-          emergency_request_id: string | null
-          eta_minutes: number | null
-          id: string
-          notes: string | null
-          responder_id: string | null
-          status: string
-          updated_at: string | null
-        }
-        Insert: {
-          assigned_at?: string | null
-          created_at?: string | null
-          emergency_request_id?: string | null
-          eta_minutes?: number | null
-          id?: string
-          notes?: string | null
-          responder_id?: string | null
-          status?: string
-          updated_at?: string | null
-        }
-        Update: {
-          assigned_at?: string | null
-          created_at?: string | null
-          emergency_request_id?: string | null
-          eta_minutes?: number | null
-          id?: string
-          notes?: string | null
-          responder_id?: string | null
-          status?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "emergency_assignments_emergency_request_id_fkey"
-            columns: ["emergency_request_id"]
-            isOneToOne: false
-            referencedRelation: "emergency_requests"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "emergency_assignments_responder_id_fkey"
-            columns: ["responder_id"]
-            isOneToOne: false
-            referencedRelation: "emergency_responders"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      emergency_requests: {
-        Row: {
-          ambulance_id: string | null
-          created_at: string | null
-          id: string
-          location: Json
-          name: string
-          notes: string | null
-          patient_id: string | null
-          phone: string
-          status: string
-          timestamp: string
-          updated_at: string | null
-        }
-        Insert: {
-          ambulance_id?: string | null
-          created_at?: string | null
-          id?: string
-          location: Json
-          name: string
-          notes?: string | null
-          patient_id?: string | null
-          phone: string
-          status?: string
-          timestamp?: string
-          updated_at?: string | null
-        }
-        Update: {
-          ambulance_id?: string | null
-          created_at?: string | null
-          id?: string
-          location?: Json
-          name?: string
-          notes?: string | null
-          patient_id?: string | null
+          name?: string | null
           phone?: string
-          status?: string
-          timestamp?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "emergency_requests_patient_id_fkey"
-            columns: ["patient_id"]
-            isOneToOne: false
-            referencedRelation: "patients"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      emergency_responders: {
-        Row: {
-          created_at: string | null
-          id: string
-          location_lat: number | null
-          location_lng: number | null
-          name: string
-          phone_number: string
-          status: string
-          updated_at: string | null
-          vehicle_number: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          location_lat?: number | null
-          location_lng?: number | null
-          name: string
-          phone_number: string
-          status?: string
-          updated_at?: string | null
-          vehicle_number: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          location_lat?: number | null
-          location_lng?: number | null
-          name?: string
-          phone_number?: string
-          status?: string
-          updated_at?: string | null
-          vehicle_number?: string
+          updated_at?: string
         }
         Relationships: []
       }
-      order_items: {
+      order_tracking_events: {
         Row: {
-          created_at: string | null
+          created_at: string
+          description: string | null
           id: string
           order_id: string
-          price_at_purchase: number
-          product_id: string
-          quantity: number
+          status: string
         }
         Insert: {
-          created_at?: string | null
+          created_at?: string
+          description?: string | null
           id?: string
           order_id: string
-          price_at_purchase: number
-          product_id: string
-          quantity?: number
+          status: string
         }
         Update: {
-          created_at?: string | null
+          created_at?: string
+          description?: string | null
           id?: string
           order_id?: string
-          price_at_purchase?: number
-          product_id?: string
-          quantity?: number
+          status?: string
         }
         Relationships: [
           {
-            foreignKeyName: "order_items_order_id_fkey"
+            foreignKeyName: "order_tracking_events_order_id_fkey"
             columns: ["order_id"]
             isOneToOne: false
-            referencedRelation: "orders"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "order_items_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
+            referencedRelation: "orders_new"
+            referencedColumns: ["order_id"]
           },
         ]
       }
       orders: {
         Row: {
-          amount: number | null
-          created_at: string | null
-          customer_id: string
-          delivery_address: string
-          delivery_location: string | null
-          distance: number | null
-          estimated_time: number | null
+          created_at: string
           id: string
-          is_rider_assigned: boolean | null
-          order_number: string
-          payment_method: string | null
-          pickup_location: string | null
+          order_id: string
+          prescription_image_url: string | null
           rider_id: string | null
           status: string
-          total_amount: number
-          updated_at: string | null
+          updated_at: string
         }
         Insert: {
-          amount?: number | null
-          created_at?: string | null
-          customer_id: string
-          delivery_address: string
-          delivery_location?: string | null
-          distance?: number | null
-          estimated_time?: number | null
+          created_at?: string
           id?: string
-          is_rider_assigned?: boolean | null
-          order_number: string
-          payment_method?: string | null
-          pickup_location?: string | null
+          order_id: string
+          prescription_image_url?: string | null
           rider_id?: string | null
           status?: string
-          total_amount?: number
-          updated_at?: string | null
+          updated_at?: string
         }
         Update: {
-          amount?: number | null
-          created_at?: string | null
-          customer_id?: string
-          delivery_address?: string
-          delivery_location?: string | null
-          distance?: number | null
-          estimated_time?: number | null
+          created_at?: string
           id?: string
-          is_rider_assigned?: boolean | null
-          order_number?: string
-          payment_method?: string | null
-          pickup_location?: string | null
+          order_id?: string
+          prescription_image_url?: string | null
           rider_id?: string | null
           status?: string
-          total_amount?: number
-          updated_at?: string | null
+          updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "orders_customer_id_fkey"
-            columns: ["customer_id"]
+            foreignKeyName: "orders_order_id_fkey"
+            columns: ["order_id"]
             isOneToOne: false
-            referencedRelation: "customers"
-            referencedColumns: ["id"]
+            referencedRelation: "orders_new"
+            referencedColumns: ["order_id"]
           },
           {
             foreignKeyName: "orders_rider_id_fkey"
@@ -430,365 +161,69 @@ export type Database = {
           },
         ]
       }
-      patients: {
+      orders_new: {
         Row: {
-          address: string | null
-          created_at: string | null
-          emergency_contact: string | null
-          id: string
-          medical_notes: string | null
-          name: string
-          phone: string
-          updated_at: string | null
-        }
-        Insert: {
-          address?: string | null
-          created_at?: string | null
-          emergency_contact?: string | null
-          id?: string
-          medical_notes?: string | null
-          name: string
-          phone: string
-          updated_at?: string | null
-        }
-        Update: {
-          address?: string | null
-          created_at?: string | null
-          emergency_contact?: string | null
-          id?: string
-          medical_notes?: string | null
-          name?: string
-          phone?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      prescriptions: {
-        Row: {
-          created_at: string | null
-          file_path: string
-          id: string
-          order_id: string
-          updated_at: string | null
-          verification_notes: string | null
-          verified: boolean | null
-          verified_by: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          file_path: string
-          id?: string
-          order_id: string
-          updated_at?: string | null
-          verification_notes?: string | null
-          verified?: boolean | null
-          verified_by?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          file_path?: string
-          id?: string
-          order_id?: string
-          updated_at?: string | null
-          verification_notes?: string | null
-          verified?: boolean | null
-          verified_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "prescriptions_order_id_fkey"
-            columns: ["order_id"]
-            isOneToOne: true
-            referencedRelation: "orders"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      Product: {
-        Row: {
+          action: string | null
+          amount: number
           created_at: string
-          id: number
-        }
-        Insert: {
-          created_at?: string
-          id?: number
-        }
-        Update: {
-          created_at?: string
-          id?: number
-        }
-        Relationships: []
-      }
-      products: {
-        Row: {
-          category: string | null
-          created_at: string | null
-          description: string | null
+          customer: string
+          date: string
           id: string
-          image_url: string | null
-          name: string
-          price: number
-          requires_prescription: boolean
-          stock_quantity: number
-          updated_at: string | null
-        }
-        Insert: {
-          category?: string | null
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          image_url?: string | null
-          name: string
-          price: number
-          requires_prescription?: boolean
-          stock_quantity?: number
-          updated_at?: string | null
-        }
-        Update: {
-          category?: string | null
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          image_url?: string | null
-          name?: string
-          price?: number
-          requires_prescription?: boolean
-          stock_quantity?: number
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      profiles: {
-        Row: {
-          address: string | null
-          created_at: string | null
-          email: string | null
-          full_name: string | null
-          id: string
-          phone: string | null
-        }
-        Insert: {
-          address?: string | null
-          created_at?: string | null
-          email?: string | null
-          full_name?: string | null
-          id: string
-          phone?: string | null
-        }
-        Update: {
-          address?: string | null
-          created_at?: string | null
-          email?: string | null
-          full_name?: string | null
-          id?: string
-          phone?: string | null
-        }
-        Relationships: []
-      }
-      reports: {
-        Row: {
-          ambulance_id: string | null
-          created_at: string | null
-          description: string | null
-          emergency_id: string | null
-          id: string
-          report_date: string
-          title: string
-          updated_at: string | null
-        }
-        Insert: {
-          ambulance_id?: string | null
-          created_at?: string | null
-          description?: string | null
-          emergency_id?: string | null
-          id?: string
-          report_date?: string
-          title: string
-          updated_at?: string | null
-        }
-        Update: {
-          ambulance_id?: string | null
-          created_at?: string | null
-          description?: string | null
-          emergency_id?: string | null
-          id?: string
-          report_date?: string
-          title?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "reports_ambulance_id_fkey"
-            columns: ["ambulance_id"]
-            isOneToOne: false
-            referencedRelation: "ambulances"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reports_emergency_id_fkey"
-            columns: ["emergency_id"]
-            isOneToOne: false
-            referencedRelation: "emergency_requests"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      rider_notifications: {
-        Row: {
-          created_at: string | null
-          id: string
-          message: string
-          notification_type: string
-          order_details: Json
           order_id: string
-          rider_id: string
-          status:
-            | Database["public"]["Enums"]["rider_notification_status"]
-            | null
-          title: string
-          updated_at: string | null
+          setup_prescription: string | null
+          updated_at: string
         }
         Insert: {
-          created_at?: string | null
+          action?: string | null
+          amount: number
+          created_at?: string
+          customer: string
+          date?: string
           id?: string
-          message: string
-          notification_type: string
-          order_details: Json
           order_id: string
-          rider_id: string
-          status?:
-            | Database["public"]["Enums"]["rider_notification_status"]
-            | null
-          title: string
-          updated_at?: string | null
+          setup_prescription?: string | null
+          updated_at?: string
         }
         Update: {
-          created_at?: string | null
+          action?: string | null
+          amount?: number
+          created_at?: string
+          customer?: string
+          date?: string
           id?: string
-          message?: string
-          notification_type?: string
-          order_details?: Json
           order_id?: string
-          rider_id?: string
-          status?:
-            | Database["public"]["Enums"]["rider_notification_status"]
-            | null
-          title?: string
-          updated_at?: string | null
+          setup_prescription?: string | null
+          updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "rider_notifications_order_id_fkey"
-            columns: ["order_id"]
-            isOneToOne: false
-            referencedRelation: "orders"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "rider_notifications_rider_id_fkey"
-            columns: ["rider_id"]
-            isOneToOne: false
-            referencedRelation: "riders"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       riders: {
         Row: {
-          created_at: string | null
-          current_orders: number | null
+          created_at: string
+          email: string
           id: string
-          last_active: string | null
           name: string
-          online_status: boolean | null
           phone: string
-          rider_code: string
           status: string
-          updated_at: string | null
+          updated_at: string
         }
         Insert: {
-          created_at?: string | null
-          current_orders?: number | null
+          created_at?: string
+          email: string
           id?: string
-          last_active?: string | null
           name: string
-          online_status?: boolean | null
           phone: string
-          rider_code: string
           status?: string
-          updated_at?: string | null
+          updated_at?: string
         }
         Update: {
-          created_at?: string | null
-          current_orders?: number | null
+          created_at?: string
+          email?: string
           id?: string
-          last_active?: string | null
           name?: string
-          online_status?: boolean | null
           phone?: string
-          rider_code?: string
           status?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      user_health_profiles: {
-        Row: {
-          allergies: string[] | null
-          blood_type: string | null
-          created_at: string | null
-          emergency_contacts: Json | null
-          id: string
-          medical_conditions: string[] | null
-          medications: string[] | null
-          notes: string | null
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          allergies?: string[] | null
-          blood_type?: string | null
-          created_at?: string | null
-          emergency_contacts?: Json | null
-          id?: string
-          medical_conditions?: string[] | null
-          medications?: string[] | null
-          notes?: string | null
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          allergies?: string[] | null
-          blood_type?: string | null
-          created_at?: string | null
-          emergency_contacts?: Json | null
-          id?: string
-          medical_conditions?: string[] | null
-          medications?: string[] | null
-          notes?: string | null
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      user_roles: {
-        Row: {
-          created_at: string | null
-          id: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -797,40 +232,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      assign_ambulance_to_emergency: {
-        Args: { emergency_id: string; ambulance_id: string }
-        Returns: boolean
-      }
-      create_emergency_request: {
-        Args: {
-          name: string
-          phone: string
-          location: Json
-          notes?: string
-          status?: string
-        }
-        Returns: string
-      }
-      get_realtime_tables: {
-        Args: Record<PropertyKey, never>
-        Returns: string[]
-      }
-      is_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_rider_online: {
-        Args: { last_active: string }
-        Returns: boolean
-      }
-      update_ambulance_status: {
-        Args: { a_id: string; new_status: string }
-        Returns: boolean
-      }
+      [_ in never]: never
     }
     Enums: {
-      app_role: "admin" | "moderator" | "rider"
-      rider_notification_status: "pending" | "accepted" | "declined"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -945,9 +350,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      app_role: ["admin", "moderator", "rider"],
-      rider_notification_status: ["pending", "accepted", "declined"],
-    },
+    Enums: {},
   },
 } as const
