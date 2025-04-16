@@ -5,6 +5,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { EmergencyRequest, Ambulance } from '@/types';
 import { useToast } from "@/hooks/use-toast";
 import AudioService from '@/services/AudioService';
+import EmergencyToast from '@/components/notifications/EmergencyToast';
+import { useNavigate } from 'react-router-dom';
 
 // Import components
 import StatCard from '@/components/dashboard/StatCard';
@@ -17,6 +19,8 @@ const Dashboard = () => {
   const [ambulances, setAmbulances] = useState<Ambulance[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+
+  const navigate = useNavigate();
 
   const fetchData = async () => {
     try {
@@ -82,6 +86,39 @@ const Dashboard = () => {
     }
   };
 
+  const handleEmergencyNotification = (payload: any) => {
+    console.log('New emergency request received:', payload);
+    
+    // Play emergency alert sound for 5 seconds
+    AudioService.playEmergencyAlert(5);
+    
+    const locationData = typeof payload.new.location === 'string' 
+      ? JSON.parse(payload.new.location) 
+      : payload.new.location;
+    
+    const address = locationData.address || 'Location pending';
+    
+    // Show enhanced emergency toast with details
+    toast({
+      variant: "emergency",
+      title: "New Emergency Request!",
+      description: (
+        <EmergencyToast
+          name={payload.new.name}
+          phone={payload.new.phone}
+          location={address}
+          onDispatch={() => {
+            navigate(`/emergencies/${payload.new.id}`);
+          }}
+        />
+      ),
+      duration: 10000, // Keep notification visible for 10 seconds
+    });
+    
+    // Refresh dashboard data
+    fetchData();
+  };
+
   useEffect(() => {
     fetchData();
 
@@ -93,19 +130,7 @@ const Dashboard = () => {
           schema: 'public', 
           table: 'emergency_requests' 
         }, 
-        (payload) => {
-          console.log('New emergency request received:', payload);
-          
-          AudioService.playEmergencyAlert(5);
-          
-          toast({
-            variant: "emergency",
-            title: "Emergency Request Received!",
-            description: "A new emergency request requires immediate attention.",
-          });
-          
-          fetchData();
-        }
+        handleEmergencyNotification
       )
       .on('postgres_changes',
         {
@@ -139,7 +164,7 @@ const Dashboard = () => {
       supabase.removeChannel(emergencyChannel);
       supabase.removeChannel(ambulanceChannel);
     };
-  }, [toast]);
+  }, [toast, navigate]);
 
   const pendingRequests = emergencyRequests.filter(req => 
     req.status === 'pending' || req.status === 'requested' || req.status === 'confirming'
