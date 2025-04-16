@@ -126,6 +126,53 @@ export type Database = {
         }
         Relationships: []
       }
+      emergency_requests: {
+        Row: {
+          ambulance_id: string | null
+          created_at: string
+          id: string
+          location: Json
+          name: string
+          notes: string | null
+          phone: string
+          status: string
+          timestamp: string
+          updated_at: string
+        }
+        Insert: {
+          ambulance_id?: string | null
+          created_at?: string
+          id?: string
+          location: Json
+          name: string
+          notes?: string | null
+          phone: string
+          status?: string
+          timestamp?: string
+          updated_at?: string
+        }
+        Update: {
+          ambulance_id?: string | null
+          created_at?: string
+          id?: string
+          location?: Json
+          name?: string
+          notes?: string | null
+          phone?: string
+          status?: string
+          timestamp?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emergency_requests_ambulance_id_fkey"
+            columns: ["ambulance_id"]
+            isOneToOne: false
+            referencedRelation: "ambulances"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_tracking_events: {
         Row: {
           created_at: string
